@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Receipt Booth"
+version = "1.0.0"
+id = "artifacts/receipt-booth"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22953
+
+[services.development]
+run = "pnpm --filter @workspace/receipt-booth run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/receipt-booth", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/receipt-booth/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22953"
+BASE_PATH = "/"

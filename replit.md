@@ -1,6 +1,6 @@
-# [Project name]
+# Receipt Booth
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A web photo booth app that captures 4 selfies with a countdown, composes them into a thermal receipt strip, dithers to 1-bit B&W, and prints via Web Bluetooth to an ESC/POS thermal printer.
 
 ## Run & Operate
 
