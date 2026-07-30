@@ -36,7 +36,7 @@ export default function Home() {
           </p>
         </div>
 
-        <Link href="/capture" className="group relative" data-testid="link-start">
+        <Link href="/frames" className="group relative" data-testid="link-start">
           <div className="absolute inset-0 bg-foreground translate-x-3 translate-y-3 transition-transform group-hover:translate-x-4 group-hover:translate-y-4 group-active:translate-x-1 group-active:translate-y-1"></div>
           <button className="relative bg-background border-4 border-foreground text-foreground px-16 py-8 text-5xl md:text-7xl font-black uppercase tracking-widest transition-transform group-active:translate-x-2 group-active:translate-y-2">
             Start

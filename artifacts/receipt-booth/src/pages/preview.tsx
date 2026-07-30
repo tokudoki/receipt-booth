@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useCapturedPhotos, useSettings, useLastReceipt } from '@/lib/store';
+import { useCapturedPhotos, useSettings, useLastReceipt, useFrameSelection } from '@/lib/store';
 import { composeReceipt } from '@/lib/receipt';
 import { floydSteinbergDither } from '@/lib/dither';
 import { connectPrinter, printReceipt, isPrinterConnected } from '@/lib/printer';
@@ -12,6 +12,7 @@ export default function Preview() {
   const { photos, clearPhotos } = useCapturedPhotos();
   const { settings } = useSettings();
   const { saveLastReceipt } = useLastReceipt();
+  const { frameCount } = useFrameSelection();
   const { toast } = useToast();
 
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
@@ -22,14 +23,14 @@ export default function Preview() {
   const [printStatus, setPrintStatus] = useState<'idle' | 'connecting' | 'printing' | 'done'>('idle');
 
   useEffect(() => {
-    if (photos.length !== 4) {
+    if (photos.length !== frameCount) {
       setLocation('/');
       return;
     }
 
     async function doCompose() {
       try {
-        const composedCanvas = await composeReceipt(photos, settings);
+        const composedCanvas = await composeReceipt(photos, settings, frameCount);
         canvasRef.current = composedCanvas;
 
         // Create a dithered version for the preview screen

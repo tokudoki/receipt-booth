@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import NotFound from '@/pages/not-found';
 import Home from '@/pages/home';
+import Frames from '@/pages/frames';
 import Capture from '@/pages/capture';
 import Preview from '@/pages/preview';
 import Settings from '@/pages/settings';
@@ -14,6 +15,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/frames" component={Frames} />
       <Route path="/capture" component={Capture} />
       <Route path="/preview" component={Preview} />
       <Route path="/settings" component={Settings} />

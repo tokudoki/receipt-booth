@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+
+export type FrameCount = 1 | 2 | 3 | 4;
 
 export type Settings = {
   footerText: string;
@@ -61,6 +63,27 @@ export function useLastReceipt() {
   }, []);
 
   return { lastReceipt, saveLastReceipt };
+}
+
+export function useFrameSelection() {
+  const [frameCount, setFrameCount] = useState<FrameCount>(() => {
+    try {
+      const stored = sessionStorage.getItem('receipt-booth-frame-count');
+      const n = stored ? parseInt(stored, 10) : 4;
+      return ([1, 2, 3, 4].includes(n) ? n : 4) as FrameCount;
+    } catch {
+      return 4;
+    }
+  });
+
+  const saveFrameCount = useCallback((count: FrameCount) => {
+    setFrameCount(count);
+    try {
+      sessionStorage.setItem('receipt-booth-frame-count', String(count));
+    } catch {}
+  }, []);
+
+  return { frameCount, saveFrameCount };
 }
 
 export function useCapturedPhotos() {
