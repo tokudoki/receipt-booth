@@ -9,7 +9,6 @@ export async function composeReceipt(
   qrCodeDataUrl: string
 ): Promise<HTMLCanvasElement> {
   const RECEIPT_WIDTH = 576;
-  const PHOTO_SIZE = RECEIPT_WIDTH; // Photos are square
   
   // Create offscreen canvas
   const canvas = document.createElement('canvas');
@@ -36,25 +35,36 @@ export async function composeReceipt(
     }
   }
 
-  // Calculate dimensions
+  // Calculate dimensions — 2×2 grid
+  const CELL = RECEIPT_WIDTH / 2; // 288px per cell
+  const GRID_ROWS = 2;
   const footerHeight = 240;
   const headerHeight = 60;
   canvas.width = RECEIPT_WIDTH;
-  canvas.height = headerHeight + (PHOTO_SIZE * photoImgs.length) + footerHeight;
+  canvas.height = headerHeight + (CELL * GRID_ROWS) + footerHeight;
 
   // Fill background with white
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw photos
-  let currentY = headerHeight;
-  for (const img of photoImgs) {
-    ctx.drawImage(img, 0, currentY, PHOTO_SIZE, PHOTO_SIZE);
-    // Draw a small black border/separator between photos
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, currentY + PHOTO_SIZE - 2, RECEIPT_WIDTH, 4);
-    currentY += PHOTO_SIZE;
-  }
+  // Draw photos in 2×2 grid
+  const GAP = 4; // separator thickness
+  photoImgs.forEach((img, i) => {
+    const col = i % 2;
+    const row = Math.floor(i / 2);
+    const x = col * CELL;
+    const y = headerHeight + row * CELL;
+    ctx.drawImage(img, x, y, CELL, CELL);
+  });
+
+  // Draw grid separators
+  ctx.fillStyle = '#000000';
+  // Vertical centre line
+  ctx.fillRect(CELL - GAP / 2, headerHeight, GAP, CELL * GRID_ROWS);
+  // Horizontal centre line
+  ctx.fillRect(0, headerHeight + CELL - GAP / 2, RECEIPT_WIDTH, GAP);
+
+  let currentY = headerHeight + CELL * GRID_ROWS;
 
   // Footer layout:
   // Logo on left, QR on right, Text centered below
