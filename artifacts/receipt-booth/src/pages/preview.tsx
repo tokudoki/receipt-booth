@@ -4,7 +4,6 @@ import { useCapturedPhotos, useSettings, useLastReceipt } from '@/lib/store';
 import { composeReceipt } from '@/lib/receipt';
 import { floydSteinbergDither } from '@/lib/dither';
 import { connectPrinter, printReceipt, isPrinterConnected } from '@/lib/printer';
-import { QRCodeCanvas } from 'qrcode.react';
 import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,7 +17,6 @@ export default function Preview() {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isComposing, setIsComposing] = useState(true);
   
-  const qrRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [printStatus, setPrintStatus] = useState<'idle' | 'connecting' | 'printing' | 'done'>('idle');
@@ -30,14 +28,8 @@ export default function Preview() {
     }
 
     async function doCompose() {
-      // Need a tiny delay to ensure QR code renders to DOM so we can extract its canvas
-      await new Promise(r => setTimeout(r, 100));
-      
-      const qrCanvas = qrRef.current?.querySelector('canvas');
-      const qrDataUrl = qrCanvas ? qrCanvas.toDataURL() : '';
-
       try {
-        const composedCanvas = await composeReceipt(photos, settings, qrDataUrl);
+        const composedCanvas = await composeReceipt(photos, settings);
         canvasRef.current = composedCanvas;
 
         // Create a dithered version for the preview screen
@@ -92,11 +84,6 @@ export default function Preview() {
   return (
     <div className="min-h-[100dvh] w-full flex flex-col md:flex-row bg-background text-foreground">
       
-      {/* Hidden QR Code for composition */}
-      <div className="absolute opacity-0 pointer-events-none -left-[9999px]" ref={qrRef}>
-        <QRCodeCanvas value={settings.qrCodeUrl} size={200} level="M" />
-      </div>
-
       {/* Left: Preview Area */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r border-border min-h-[60vh] bg-[#E8E6E1] relative overflow-hidden">
         {isComposing ? (
