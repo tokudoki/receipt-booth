@@ -10,7 +10,7 @@ export type Settings = {
 };
 
 export const defaultSettings: Settings = {
-  footerText: "RECEIPT BOOTH\nTHANK YOU",
+  footerText: "Footer Text\nThank You!",
   qrCodeUrl: "https://replit.com",
   logoDataUrl: null,
   printerName: null,

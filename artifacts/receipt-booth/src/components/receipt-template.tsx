@@ -33,14 +33,14 @@ function getSlots(frameCount: FrameCount): Slot[] {
       return [{ w: RECEIPT_W, h: RECEIPT_W }];
 
     case 2: {
-      // Two landscape photos (3:2 aspect) — matches Template 2
-      const h = Math.round(RECEIPT_W * (2 / 3)); // 384px
+      // Two landscape photos (4:3 aspect) — matches Template 2
+      const h = Math.round(RECEIPT_W * (3 / 4)); // 432px
       return [{ w: RECEIPT_W, h }, { w: RECEIPT_W, h }];
     }
 
     case 3: {
-      // Three landscape photos (16:9 aspect) — matches Template 3
-      const h = Math.round(RECEIPT_W * (9 / 16)); // 324px
+      // Three landscape photos (4:3 aspect) — matches Template 3
+      const h = Math.round(RECEIPT_W * (3 / 4)); // 432px
       return [{ w: RECEIPT_W, h }, { w: RECEIPT_W, h }, { w: RECEIPT_W, h }];
     }
 
@@ -58,8 +58,8 @@ function getSlots(frameCount: FrameCount): Slot[] {
 /** Pre-computed total receipt heights at 576px wide (used by ScaledReceiptTemplate). */
 export const TEMPLATE_HEIGHT: Record<FrameCount, number> = {
   1: HEADER_H + RECEIPT_W + FOOTER_H,
-  2: HEADER_H + Math.round(RECEIPT_W * 2 / 3) * 2 + PHOTO_GAP + FOOTER_H,
-  3: HEADER_H + Math.round(RECEIPT_W * 9 / 16) * 3 + PHOTO_GAP * 2 + FOOTER_H,
+  2: HEADER_H + Math.round(RECEIPT_W * 3 / 4) * 2 + PHOTO_GAP + FOOTER_H,
+  3: HEADER_H + Math.round(RECEIPT_W * 3 / 4) * 3 + PHOTO_GAP * 2 + FOOTER_H,
   4: HEADER_H + (Math.floor((RECEIPT_W - PHOTO_GAP) / 2) * 2 + PHOTO_GAP) + FOOTER_H,
 };
 
@@ -93,7 +93,7 @@ function DefaultHeader() {
           marginTop: 10,
         }}
       >
-        of the traveling journal
+        Sub Text
       </div>
     </>
   );
@@ -105,25 +105,25 @@ function DefaultFooter() {
       <div
         style={{
           fontFamily: SERIF,
-          fontWeight: 'bold',
+          fontWeight: 'normal',
           fontSize: 16,
-          letterSpacing: 1,
+          letterSpacing: 0.5,
           color: '#1a1a1a',
         }}
       >
-        JOURNAL #0001 FOR HELEN
+        Footer Text
       </div>
       <div
         style={{
           fontFamily: SERIF,
           fontWeight: 'normal',
-          fontSize: 14,
+          fontSize: 16,
           letterSpacing: 0.5,
           color: '#1a1a1a',
           marginTop: 2,
         }}
       >
-        STARTED, Jan 10, 2026
+        Thank You!
       </div>
     </>
   );
@@ -248,9 +248,9 @@ export function ReceiptTemplate({
               key={i}
               style={{
                 fontFamily: SERIF,
-                fontWeight: i === 0 ? 'bold' : 'normal',
-                fontSize: i === 0 ? 16 : 14,
-                letterSpacing: i === 0 ? 1 : 0.5,
+                fontWeight: 'normal',
+                fontSize: 16,
+                letterSpacing: 0.5,
                 color: '#1a1a1a',
               }}
             >
