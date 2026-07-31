@@ -3,9 +3,9 @@ import { Link, useLocation } from 'wouter';
 import { useCapturedPhotos, useSettings, useLastReceipt, useFrameSelection } from '@/lib/store';
 import { ReceiptTemplate } from '@/components/receipt-template';
 import { floydSteinbergDither } from '@/lib/dither';
-import { connectPrinter, printReceipt, isPrinterConnected } from '@/lib/printer';
+import { connectPrinter, printReceipt, isPrinterConnected, printReceiptWifi } from '@/lib/printer';
 import { toCanvas } from 'html-to-image';
-import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Loader2 } from 'lucide-react';
+import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Wifi, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Preview() {
@@ -71,15 +71,25 @@ export default function Preview() {
     doCompose();
   }, [photos, settings, frameCount, setLocation, saveLastReceipt, toast]);
 
+  const isWifiMode = Boolean(settings.printerIp?.trim());
+
   const handlePrint = async () => {
     if (!canvasRef.current) return;
     try {
-      if (!isPrinterConnected()) {
-        setPrintStatus('connecting');
-        await connectPrinter();
+      if (isWifiMode) {
+        // WiFi path — send to local bridge, no pairing needed
+        setPrintStatus('printing');
+        // Pass bridgeUrl as-is (empty string is valid — printReceiptWifi derives from window.location.origin)
+        await printReceiptWifi(canvasRef.current, settings.printerIp, settings.bridgeUrl, settings.bridgeSecret || '');
+      } else {
+        // Bluetooth fallback
+        if (!isPrinterConnected()) {
+          setPrintStatus('connecting');
+          await connectPrinter();
+        }
+        setPrintStatus('printing');
+        await printReceipt(canvasRef.current);
       }
-      setPrintStatus('printing');
-      await printReceipt(canvasRef.current);
       setPrintStatus('done');
       setTimeout(() => setPrintStatus('idle'), 3000);
     } catch (err: any) {
@@ -145,8 +155,10 @@ export default function Preview() {
         <div className="space-y-2 mb-4">
           <h2 className="text-4xl font-black uppercase">Ready to Print</h2>
           <p className="text-muted-foreground font-thermal flex items-center gap-2">
-            <Bluetooth size={16} />
-            {isPrinterConnected() ? 'Printer Connected' : 'Printer Ready'}
+            {isWifiMode ? <Wifi size={16} /> : <Bluetooth size={16} />}
+            {isWifiMode
+              ? `WiFi Printer · ${settings.printerIp}`
+              : isPrinterConnected() ? 'Printer Connected' : 'Printer Ready'}
           </p>
         </div>
 

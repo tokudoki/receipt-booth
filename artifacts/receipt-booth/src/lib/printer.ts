@@ -1,5 +1,106 @@
 import { floydSteinbergDither } from './dither';
 
+// ─── WiFi printing (MUNBYN P905 via local bridge) ────────────────────────────
+
+/** Print width for 80mm paper at 203 dpi — matches P905 printable area. */
+const WIFI_PRINT_WIDTH = 576;
+
+/** Basic IPv4 validation — rejects obviously wrong input before hitting the bridge. */
+function assertValidIp(ip: string) {
+  const parts = ip.trim().split('.');
+  const valid = parts.length === 4 && parts.every(p => {
+    const n = Number(p);
+    return /^\d+$/.test(p) && n >= 0 && n <= 255;
+  });
+  if (!valid) throw new Error(`"${ip}" is not a valid IPv4 address. Update Printer IP in Settings.`);
+}
+
+/**
+ * Sends a receipt to the local print bridge which forwards it to the P905
+ * over TCP port 9100.
+ *
+ * bridgeUrl: base URL of the bridge. When empty, window.location.origin is
+ * used — correct when the iPad opens the app directly from the bridge at
+ * http://<mac-ip>:3001 (same origin, no mixed-content issues).
+ */
+export async function printReceiptWifi(
+  canvas: HTMLCanvasElement,
+  printerIp: string,
+  bridgeUrl: string,
+  bridgeSecret = '',
+): Promise<void> {
+  assertValidIp(printerIp);
+  // Scale canvas to 576px wide (80mm at 203 dpi)
+  let printCanvas = canvas;
+  if (canvas.width !== WIFI_PRINT_WIDTH) {
+    printCanvas = document.createElement('canvas');
+    printCanvas.width  = WIFI_PRINT_WIDTH;
+    printCanvas.height = Math.floor(canvas.height * (WIFI_PRINT_WIDTH / canvas.width));
+    const ctx = printCanvas.getContext('2d')!;
+    ctx.drawImage(canvas, 0, 0, printCanvas.width, printCanvas.height);
+  }
+
+  const ctx    = printCanvas.getContext('2d')!;
+  const width  = printCanvas.width;
+  const height = printCanvas.height;
+
+  // Floyd-Steinberg dither → 1-bit raster
+  const imgData     = ctx.getImageData(0, 0, width, height);
+  const dithered    = floydSteinbergDither(imgData);
+  const data        = dithered.data;
+  const widthBytes  = Math.ceil(width / 8);
+  const rasterData  = new Uint8Array(widthBytes * height);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4] < 128) {
+        rasterData[y * widthBytes + Math.floor(x / 8)] |= (1 << (7 - (x % 8)));
+      }
+    }
+  }
+
+  // Build full ESC/POS payload in one buffer
+  const ESC_INIT    = [0x1B, 0x40];
+  const ALIGN_CTR   = [0x1B, 0x61, 0x01];
+  const GS_V_0      = [
+    0x1D, 0x76, 0x30, 0x00,
+    widthBytes & 0xFF, (widthBytes >> 8) & 0xFF,
+    height     & 0xFF, (height     >> 8) & 0xFF,
+  ];
+  const FEED        = [0x1B, 0x64, 0x04];
+  const CUT         = [0x1D, 0x56, 0x42, 0x00];
+
+  const header  = new Uint8Array([...ESC_INIT, ...ALIGN_CTR, ...GS_V_0]);
+  const footer  = new Uint8Array([...FEED, ...CUT]);
+  const payload = new Uint8Array(header.length + rasterData.length + footer.length);
+  payload.set(header, 0);
+  payload.set(rasterData, header.length);
+  payload.set(footer, header.length + rasterData.length);
+
+  // Derive bridge base: use the page's own origin when bridgeUrl is blank,
+  // so requests are always same-origin when the app is served by the bridge.
+  const base     = (bridgeUrl || window.location.origin).replace(/\/$/, '');
+  const printUrl = new URL(base + '/print');
+  printUrl.searchParams.set('ip', printerIp);
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/octet-stream' };
+  if (bridgeSecret) headers['X-Bridge-Token'] = bridgeSecret;
+
+  const res = await fetch(printUrl.toString(), {
+    method: 'POST',
+    headers,
+    body: payload,
+  });
+
+  if (!res.ok) {
+    let msg = `Bridge error ${res.status}`;
+    try { const j = await res.json(); msg = j.error || msg; } catch {}
+    throw new Error(msg);
+  }
+}
+
+// ─── Bluetooth printing (legacy fallback) ────────────────────────────────────
+
 let connectedDevice: BluetoothDevice | null = null;
 let printCharacteristic: BluetoothRemoteGATTCharacteristic | null = null;
 

@@ -7,6 +7,21 @@ export type Settings = {
   qrCodeUrl: string;
   logoDataUrl: string | null;
   printerName: string | null;
+  /** IP address of the MUNBYN P905 on the local network, e.g. "192.168.1.42" */
+  printerIp: string;
+  /**
+   * Base URL of the local print bridge.
+   * Leave blank to auto-derive from window.location.origin (correct when the
+   * iPad opens the app from the bridge itself at http://<mac-ip>:3001).
+   * Only set manually if the bridge runs on a different machine.
+   */
+  bridgeUrl: string;
+  /**
+   * Optional shared secret matching the SECRET constant in bridge.js.
+   * When set, sent as X-Bridge-Token header to authorise print requests.
+   * Leave blank if bridge.js has no SECRET configured.
+   */
+  bridgeSecret: string;
 };
 
 export const defaultSettings: Settings = {
@@ -14,6 +29,9 @@ export const defaultSettings: Settings = {
   qrCodeUrl: "https://replit.com",
   logoDataUrl: null,
   printerName: null,
+  printerIp: '',
+  bridgeUrl: '',
+  bridgeSecret: '',
 };
 
 export function useSettings() {

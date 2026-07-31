@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'wouter';
 import { useSettings } from '@/lib/store';
 import { connectPrinter, isPrinterConnected, disconnectPrinter } from '@/lib/printer';
-import { ArrowLeft, Bluetooth, Image as ImageIcon, CheckCircle, Trash2, Printer } from 'lucide-react';
+import { ArrowLeft, Bluetooth, Wifi, Image as ImageIcon, CheckCircle, Trash2, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
@@ -11,17 +11,17 @@ export default function Settings() {
   
   const [footerText, setFooterText] = useState(settings.footerText);
   const [qrCodeUrl, setQrCodeUrl] = useState(settings.qrCodeUrl);
-  
+  const [printerIp, setPrinterIp] = useState(settings.printerIp ?? '');
+  const [bridgeUrl, setBridgeUrl] = useState(settings.bridgeUrl ?? '');
+  const [bridgeSecret, setBridgeSecret] = useState(settings.bridgeSecret ?? '');
+
   const [isConnecting, setIsConnecting] = useState(false);
   const [printerConnected, setPrinterConnected] = useState(isPrinterConnected());
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
-    saveSettings({
-      footerText,
-      qrCodeUrl
-    });
+    saveSettings({ footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret });
     toast({ title: 'Settings saved successfully' });
   };
 
@@ -87,12 +87,68 @@ export default function Settings() {
             </h2>
           </div>
           
+          {/* WiFi mode (MUNBYN P905) */}
           <div className="bg-card border-2 border-border p-6 space-y-4">
-            <p className="font-thermal text-muted-foreground">
-              Connect to an ESC/POS compatible Bluetooth thermal printer. Uses Web Bluetooth (requires Chrome/Edge).
+            <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+              <Wifi size={20} /> WiFi Printer (MUNBYN P905)
+            </div>
+            <p className="font-thermal text-muted-foreground text-sm">
+              Enter the printer's IP address and run the local print bridge on your Mac. Leave Printer IP blank to use Bluetooth instead.
+            </p>
+
+            <div className="space-y-3 pt-2">
+              <div className="space-y-1">
+                <label className="text-sm font-bold uppercase tracking-wider block">Printer IP Address</label>
+                <input
+                  type="text"
+                  value={printerIp}
+                  onChange={(e) => setPrinterIp(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="e.g. 192.168.1.42"
+                  className="w-full p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-bold uppercase tracking-wider block">Bridge URL <span className="font-normal normal-case text-muted-foreground">(optional)</span></label>
+                <input
+                  type="text"
+                  value={bridgeUrl}
+                  onChange={(e) => setBridgeUrl(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="Auto (same origin)"
+                  className="w-full p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                />
+                <p className="text-xs text-muted-foreground font-thermal">
+                  Leave blank — print requests go to the same address you opened the app from. Only set this if the bridge runs on a different machine.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-bold uppercase tracking-wider block">Bridge Secret <span className="font-normal normal-case text-muted-foreground">(optional)</span></label>
+                <input
+                  type="password"
+                  value={bridgeSecret}
+                  onChange={(e) => setBridgeSecret(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="Leave blank if not configured"
+                  className="w-full p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                />
+                <p className="text-xs text-muted-foreground font-thermal">
+                  Must match the SECRET value set in bridge.js. Leave blank if SECRET is empty.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bluetooth fallback */}
+          <div className="bg-card border-2 border-border p-6 space-y-4">
+            <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
+              <Bluetooth size={20} /> Bluetooth Printer (fallback)
+            </div>
+            <p className="font-thermal text-muted-foreground text-sm">
+              Used only when Printer IP above is blank. Requires Chrome or Edge.
             </p>
             
-            <div className="flex items-center gap-4 mt-6">
+            <div className="flex items-center gap-4 mt-2">
               {printerConnected ? (
                 <>
                   <div className="flex items-center gap-2 text-green-600 font-bold uppercase">
