@@ -16,8 +16,8 @@ import type { Settings, FrameCount } from '@/lib/store';
 
 const RECEIPT_W = 576;
 const PHOTO_GAP = 6;   // thin white separator between photos (matches Figma)
-const HEADER_H  = 180; // header zone height — matches Figma proportions
-const FOOTER_H  = 110; // footer zone height
+const HEADER_H  = 216; // header zone height — matches Figma proportions (~22% of total)
+const FOOTER_H  = 156; // footer zone height — matches Figma proportions (~16% of total)
 
 // Fonts — system faces so html-to-image captures them without network fetches
 const SERIF = 'Georgia, "Times New Roman", serif';
