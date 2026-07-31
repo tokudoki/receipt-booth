@@ -273,24 +273,29 @@ export function ReceiptTemplate({
 interface ScaledProps {
   frameCount: FrameCount;
   settings: Settings;
+  /** Optional height cap (px). When set, scale = min(widthScale, heightScale). */
+  maxHeight?: number;
 }
 
-export function ScaledReceiptTemplate({ frameCount, settings }: ScaledProps) {
+export function ScaledReceiptTemplate({ frameCount, settings, maxHeight }: ScaledProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.43);
 
   useEffect(() => {
     const update = () => {
-      if (containerRef.current) {
-        setScale(containerRef.current.clientWidth / RECEIPT_W);
-      }
+      if (!containerRef.current) return;
+      const widthScale  = containerRef.current.clientWidth / RECEIPT_W;
+      const heightScale = maxHeight !== undefined
+        ? maxHeight / TEMPLATE_HEIGHT[frameCount]
+        : Infinity;
+      setScale(Math.min(widthScale, heightScale));
     };
     update();
 
     const ro = new ResizeObserver(update);
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
-  }, []);
+  }, [frameCount, maxHeight]);
 
   const templateH = TEMPLATE_HEIGHT[frameCount];
   const scaledH   = Math.round(templateH * scale);

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { ArrowLeft } from 'lucide-react';
 import { useFrameSelection, useSettings, type FrameCount } from '@/lib/store';
@@ -11,11 +11,35 @@ const FRAME_OPTIONS: { count: FrameCount; label: string; sub: string }[] = [
   { count: 4, label: '4 FRAMES', sub: '2 × 2 grid'     },
 ];
 
+// Height of the label area below each card (text + gap-3 = 12px)
+const LABEL_H_PX = 56;
+// Row gap between the two grid rows
+const ROW_GAP_PX = 16; // gap-4
+
 export default function Frames() {
   const [_, setLocation] = useLocation();
   const { frameCount, saveFrameCount } = useFrameSelection();
   const { settings } = useSettings();
   const [selected, setSelected] = useState<FrameCount>(frameCount);
+
+  // Measure the cards container so ScaledReceiptTemplate can cap its height
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [gridHeight, setGridHeight] = useState(0);
+
+  useEffect(() => {
+    const update = () => {
+      if (gridRef.current) setGridHeight(gridRef.current.clientHeight);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    if (gridRef.current) ro.observe(gridRef.current);
+    return () => ro.disconnect();
+  }, []);
+
+  // Max receipt-image height per card so both rows fit without overflow
+  const maxCardHeight = gridHeight > 0
+    ? Math.max(60, Math.floor((gridHeight - ROW_GAP_PX) / 2) - LABEL_H_PX)
+    : undefined;
 
   function handleContinue() {
     saveFrameCount(selected);
@@ -40,9 +64,9 @@ export default function Frames() {
         </div>
       </div>
 
-      {/* Cards — always 4-col so all cards fit in one row without scrolling */}
+      {/* Cards — 2×2 grid; height-constrained so both rows fit without scrolling */}
       <div className="flex-1 min-h-0 px-4 md:px-8 py-4 overflow-hidden">
-        <div className="grid grid-cols-4 gap-4 h-full max-w-5xl mx-auto items-start">
+        <div ref={gridRef} className="grid grid-cols-2 gap-4 h-full max-w-5xl mx-auto items-start">
           {FRAME_OPTIONS.map(({ count, label, sub }) => {
             const isSelected = selected === count;
             return (
@@ -61,8 +85,8 @@ export default function Frames() {
                         : 'outline outline-[1.5px] outline-border shadow-[2px_2px_0px_0px_rgba(0,0,0,0.12)] group-hover:outline-foreground/50 group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]',
                     ].join(' ')}
                   >
-                    {/* The actual template, scaled to fit */}
-                    <ScaledReceiptTemplate frameCount={count} settings={settings} />
+                    {/* The actual template, scaled to fit within its grid cell */}
+                    <ScaledReceiptTemplate frameCount={count} settings={settings} maxHeight={maxCardHeight} />
                   </div>
 
                   {/* Check badge */}
