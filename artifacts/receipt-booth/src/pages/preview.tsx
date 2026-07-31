@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useCapturedPhotos, useSettings, useLastReceipt, useFrameSelection } from '@/lib/store';
-import { ReceiptTemplate } from '@/components/receipt-template';
 import { floydSteinbergDither } from '@/lib/dither';
 import { connectPrinter, printReceipt, isPrinterConnected, printReceiptWifi } from '@/lib/printer';
-import { toCanvas } from 'html-to-image';
+import { renderReceiptToCanvas } from '@/lib/render-receipt';
 import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Wifi, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,8 +18,6 @@ export default function Preview() {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isComposing, setIsComposing] = useState(true);
 
-  // Ref to the off-screen rendered template DOM node
-  const templateRef = useRef<HTMLDivElement>(null);
   // Ref to the captured canvas (full-color, for printing)
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -34,18 +31,9 @@ export default function Preview() {
 
     async function doCompose() {
       try {
-        // Give React time to mount & render the off-screen template with images
-        await new Promise(r => setTimeout(r, 200));
-
-        if (!templateRef.current) throw new Error('Template element not found');
-
-        // Capture the rendered DOM node at exactly 576px (pixelRatio:1).
-        // skipFonts:true avoids CORS errors from external Google Fonts CSS;
-        // the template intentionally uses only system serif fonts (Georgia).
-        const captured = await toCanvas(templateRef.current, {
-          pixelRatio: 1,
-          skipFonts: true,
-        });
+        // Render receipt directly to canvas — no DOM serialisation, no html-to-image.
+        // This approach works on iOS Safari which cannot render <img> inside SVG foreignObject.
+        const captured = await renderReceiptToCanvas(photos, settings, frameCount);
         canvasRef.current = captured;
 
         // Make a dithered copy for the on-screen preview
@@ -105,31 +93,6 @@ export default function Preview() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col lg:flex-row overflow-hidden bg-background text-foreground">
-
-      {/*
-        Off-screen ReceiptTemplate — rendered at full 576px so html-to-image
-        captures the exact same layout shown in the frame picker.
-        Positioned far off-screen; NOT display:none (would prevent rendering).
-      */}
-      <div
-        aria-hidden
-        style={{
-          position: 'fixed',
-          left: -10000,
-          top: 0,
-          zIndex: -1,
-          pointerEvents: 'none',
-        }}
-      >
-        <div ref={templateRef}>
-          <ReceiptTemplate
-            frameCount={frameCount}
-            photos={photos}
-            settings={settings}
-            preview={false}
-          />
-        </div>
-      </div>
 
       {/* Left — dithered preview */}
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-border bg-[#E8E6E1] relative overflow-hidden">

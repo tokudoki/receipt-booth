@@ -32,10 +32,14 @@ export function captureFrame(videoElem: HTMLVideoElement): string {
   const startX = (videoElem.videoWidth - size) / 2;
   const startY = (videoElem.videoHeight - size) / 2;
   
+  // White background prevents blank JPEG on iOS when transparency collapses
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+
   // Mirror the image horizontally so it acts like a mirror
   ctx.translate(size, 0);
   ctx.scale(-1, 1);
-  
+
   ctx.drawImage(
     videoElem,
     startX, startY, size, size, // source rect
