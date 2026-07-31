@@ -129,14 +129,12 @@ export default function Preview() {
             <p>Composing Receipt…</p>
           </div>
         ) : receiptUrl ? (
-          <div className="relative h-full w-full max-w-sm flex items-center justify-center">
-            <div className="w-full max-w-[300px] shadow-xl transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out">
-              <img
-                src={receiptUrl}
-                alt="Receipt Preview"
-                className="w-full h-auto object-contain mix-blend-multiply bg-white p-2 pb-6 border-b-4 border-r-2 border-border/20"
-              />
-            </div>
+          <div className="relative h-full w-full flex items-center justify-center">
+            <img
+              src={receiptUrl}
+              alt="Receipt Preview"
+              className="max-h-full max-w-[280px] w-auto object-contain mix-blend-multiply bg-white p-2 pb-6 shadow-xl border-b-4 border-r-2 border-border/20 transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out"
+            />
           </div>
         ) : null}
       </div>
