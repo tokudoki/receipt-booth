@@ -1,9 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useCapturedPhotos, useSettings, useLastReceipt, useFrameSelection } from '@/lib/store';
-import { composeReceipt } from '@/lib/receipt';
+import { ReceiptTemplate } from '@/components/receipt-template';
 import { floydSteinbergDither } from '@/lib/dither';
 import { connectPrinter, printReceipt, isPrinterConnected } from '@/lib/printer';
+import { toCanvas } from 'html-to-image';
 import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,7 +18,10 @@ export default function Preview() {
 
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [isComposing, setIsComposing] = useState(true);
-  
+
+  // Ref to the off-screen rendered template DOM node
+  const templateRef = useRef<HTMLDivElement>(null);
+  // Ref to the captured canvas (full-color, for printing)
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const [printStatus, setPrintStatus] = useState<'idle' | 'connecting' | 'printing' | 'done'>('idle');
@@ -30,20 +34,29 @@ export default function Preview() {
 
     async function doCompose() {
       try {
-        const composedCanvas = await composeReceipt(photos, settings, frameCount);
-        canvasRef.current = composedCanvas;
+        // Give React time to mount & render the off-screen template with images
+        await new Promise(r => setTimeout(r, 200));
 
-        // Create a dithered version for the preview screen
-        const ditheredCanvas = document.createElement('canvas');
-        ditheredCanvas.width = composedCanvas.width;
-        ditheredCanvas.height = composedCanvas.height;
-        const dctx = ditheredCanvas.getContext('2d')!;
-        dctx.drawImage(composedCanvas, 0, 0);
-        
-        const imageData = dctx.getImageData(0, 0, ditheredCanvas.width, ditheredCanvas.height);
-        dctx.putImageData(floydSteinbergDither(imageData), 0, 0);
+        if (!templateRef.current) throw new Error('Template element not found');
 
-        const url = ditheredCanvas.toDataURL('image/png');
+        // Capture the rendered DOM node at exactly 576px (pixelRatio:1)
+        const captured = await toCanvas(templateRef.current, {
+          pixelRatio: 1,
+          // Inline all styles so html-to-image faithfully reproduces the layout
+          skipFonts: false,
+        });
+        canvasRef.current = captured;
+
+        // Make a dithered copy for the on-screen preview
+        const dithered = document.createElement('canvas');
+        dithered.width  = captured.width;
+        dithered.height = captured.height;
+        const dctx = dithered.getContext('2d')!;
+        dctx.drawImage(captured, 0, 0);
+        const imgData = dctx.getImageData(0, 0, dithered.width, dithered.height);
+        dctx.putImageData(floydSteinbergDither(imgData), 0, 0);
+
+        const url = dithered.toDataURL('image/png');
         setReceiptUrl(url);
         saveLastReceipt(url);
       } catch (err) {
@@ -53,30 +66,27 @@ export default function Preview() {
         setIsComposing(false);
       }
     }
-    
+
     doCompose();
-  }, [photos, settings, setLocation, saveLastReceipt, toast]);
+  }, [photos, settings, frameCount, setLocation, saveLastReceipt, toast]);
 
   const handlePrint = async () => {
     if (!canvasRef.current) return;
-    
     try {
       if (!isPrinterConnected()) {
         setPrintStatus('connecting');
         await connectPrinter();
       }
-      
       setPrintStatus('printing');
       await printReceipt(canvasRef.current);
       setPrintStatus('done');
-      
       setTimeout(() => setPrintStatus('idle'), 3000);
     } catch (err: any) {
       console.error(err);
-      toast({ 
-        title: 'Printing Failed', 
+      toast({
+        title: 'Printing Failed',
         description: err.message || 'Check printer connection.',
-        variant: 'destructive' 
+        variant: 'destructive',
       });
       setPrintStatus('idle');
     }
@@ -84,27 +94,55 @@ export default function Preview() {
 
   return (
     <div className="min-h-[100dvh] w-full flex flex-col md:flex-row bg-background text-foreground">
-      
-      {/* Left: Preview Area */}
+
+      {/*
+        Off-screen ReceiptTemplate — rendered at full 576px so html-to-image
+        captures the exact same layout shown in the frame picker.
+        Positioned far off-screen; NOT display:none (would prevent rendering).
+      */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          left: -10000,
+          top: 0,
+          zIndex: -1,
+          pointerEvents: 'none',
+        }}
+      >
+        <div ref={templateRef}>
+          <ReceiptTemplate
+            frameCount={frameCount}
+            photos={photos}
+            settings={settings}
+            preview={false}
+          />
+        </div>
+      </div>
+
+      {/* Left — dithered preview */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 border-b md:border-b-0 md:border-r border-border min-h-[60vh] bg-[#E8E6E1] relative overflow-hidden">
         {isComposing ? (
           <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground font-mono uppercase">
             <Loader2 className="animate-spin" size={48} />
-            <p>Composing Receipt...</p>
+            <p>Composing Receipt…</p>
           </div>
         ) : receiptUrl ? (
           <div className="relative h-full w-full max-w-sm flex items-center justify-center">
-            {/* The physical paper look */}
             <div className="w-full max-w-[300px] shadow-xl transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out">
-              <img src={receiptUrl} alt="Receipt Preview" className="w-full h-auto object-contain mix-blend-multiply bg-white p-2 pb-6 border-b-4 border-r-2 border-border/20" />
+              <img
+                src={receiptUrl}
+                alt="Receipt Preview"
+                className="w-full h-auto object-contain mix-blend-multiply bg-white p-2 pb-6 border-b-4 border-r-2 border-border/20"
+              />
             </div>
           </div>
         ) : null}
       </div>
 
-      {/* Right: Actions */}
+      {/* Right — actions */}
       <div className="w-full md:w-96 lg:w-[450px] p-8 flex flex-col justify-center gap-6 bg-card">
-        
+
         <div className="space-y-2 mb-4">
           <h2 className="text-4xl font-black uppercase">Ready to Print</h2>
           <p className="text-muted-foreground font-thermal flex items-center gap-2">
@@ -119,22 +157,21 @@ export default function Preview() {
           className={`relative group w-full ${printStatus === 'done' ? 'bg-green-600 text-white' : 'bg-foreground text-background'} p-6 text-3xl font-black uppercase transition-all disabled:opacity-50`}
         >
           <div className="flex items-center justify-center gap-4">
-            {printStatus === 'connecting' ? <Loader2 className="animate-spin" /> : 
-             printStatus === 'printing' ? <Printer className="animate-bounce" /> :
-             printStatus === 'done' ? <CheckCircle /> :
-             <Printer size={32} />}
-            
+            {printStatus === 'connecting' ? <Loader2 className="animate-spin" /> :
+             printStatus === 'printing'   ? <Printer className="animate-bounce" /> :
+             printStatus === 'done'       ? <CheckCircle /> :
+                                            <Printer size={32} />}
             <span>
-              {printStatus === 'connecting' ? 'Connecting...' : 
-               printStatus === 'printing' ? 'Printing...' :
-               printStatus === 'done' ? 'Printed!' :
-               'Print Receipt'}
+              {printStatus === 'connecting' ? 'Connecting…' :
+               printStatus === 'printing'   ? 'Printing…' :
+               printStatus === 'done'       ? 'Printed!' :
+                                             'Print Receipt'}
             </span>
           </div>
         </button>
 
         <div className="flex gap-4">
-          <button 
+          <button
             onClick={() => {
               if (receiptUrl) {
                 const a = document.createElement('a');
@@ -148,12 +185,9 @@ export default function Preview() {
           >
             <Download size={20} /> Save
           </button>
-          
-          <button 
-            onClick={() => {
-              clearPhotos();
-              setLocation('/capture');
-            }}
+
+          <button
+            onClick={() => { clearPhotos(); setLocation('/capture'); }}
             className="flex-1 flex items-center justify-center gap-2 border-2 border-border p-4 font-bold uppercase hover:bg-secondary transition-colors"
           >
             <RefreshCcw size={20} /> Retake
@@ -161,7 +195,10 @@ export default function Preview() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-border flex justify-center">
-          <Link href="/" className="text-muted-foreground hover:text-foreground font-thermal font-bold underline underline-offset-4 decoration-2">
+          <Link
+            href="/"
+            className="text-muted-foreground hover:text-foreground font-thermal font-bold underline underline-offset-4 decoration-2"
+          >
             BACK TO HOME
           </Link>
         </div>

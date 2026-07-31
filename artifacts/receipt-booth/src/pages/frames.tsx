@@ -1,140 +1,20 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { ArrowLeft } from 'lucide-react';
-import { useFrameSelection, type FrameCount } from '@/lib/store';
+import { useFrameSelection, useSettings, type FrameCount } from '@/lib/store';
+import { ScaledReceiptTemplate } from '@/components/receipt-template';
 
-// ─── Receipt template preview cards ─────────────────────────────────────────
-// Each mimics the exact Figma template layouts:
-//   • Photos are edge-to-edge (no side padding)
-//   • Separated by a thin white gap
-//   • No border outlines on photos
-
-const GAP = '3px'; // thin white gap between photos
-
-function ReceiptCard({ children, selected }: { children: React.ReactNode; selected: boolean }) {
-  return (
-    <div
-      className={[
-        'w-full bg-white flex flex-col overflow-hidden transition-all duration-150',
-        selected
-          ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
-          : 'outline outline-[1.5px] outline-border shadow-[2px_2px_0px_0px_rgba(0,0,0,0.12)]',
-      ].join(' ')}
-      style={{ aspectRatio: '1 / 2.1' }}
-    >
-      {/* Serrated top tear */}
-      <div className="w-full flex-shrink-0" style={{ height: 7 }}>
-        <svg width="100%" height="7" preserveAspectRatio="none" viewBox="0 0 200 7">
-          <polyline
-            points={Array.from({ length: 21 }, (_, i) =>
-              i % 2 === 0 ? `${i * 10},0` : `${i * 10 - 5},7`
-            ).join(' ') + ' 200,0'}
-            fill="none"
-            stroke="#d0cdc8"
-            strokeWidth="1"
-          />
-        </svg>
-      </div>
-
-      {/* Header area — brand name placeholder */}
-      <div className="flex flex-col items-center justify-center py-2 px-1 flex-shrink-0" style={{ height: '26%' }}>
-        <div className="font-serif text-[clamp(10px,3vw,18px)] font-normal tracking-tight text-foreground leading-tight text-center">
-          centered
-        </div>
-        <div className="text-[clamp(6px,1.5vw,9px)] text-muted-foreground tracking-wide text-center mt-0.5">
-          of the traveling journal
-        </div>
-      </div>
-
-      {/* Photo zone */}
-      {children}
-
-      {/* Footer area */}
-      <div className="flex flex-col items-center justify-center flex-shrink-0 py-2" style={{ height: '16%' }}>
-        <div className="text-[clamp(5px,1.2vw,8px)] font-bold uppercase tracking-wider text-foreground text-center font-mono">
-          JOURNAL #0001
-        </div>
-        <div className="text-[clamp(5px,1.2vw,8px)] font-mono uppercase tracking-wider text-foreground text-center">
-          STARTED, Jan 10, 2026
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Photo placeholder — flat gray, no border
-function Photo({ style }: { style?: React.CSSProperties }) {
-  return <div className="w-full bg-[#ABABAB]" style={style} />;
-}
-
-function OneFramePreview({ selected }: { selected: boolean }) {
-  return (
-    <ReceiptCard selected={selected}>
-      <div className="flex-1 w-full">
-        <Photo style={{ height: '100%' }} />
-      </div>
-    </ReceiptCard>
-  );
-}
-
-function TwoFramePreview({ selected }: { selected: boolean }) {
-  return (
-    <ReceiptCard selected={selected}>
-      <div className="flex-1 w-full flex flex-col" style={{ gap: GAP, backgroundColor: 'white' }}>
-        <Photo style={{ flex: 1 }} />
-        <Photo style={{ flex: 1 }} />
-      </div>
-    </ReceiptCard>
-  );
-}
-
-function ThreeFramePreview({ selected }: { selected: boolean }) {
-  return (
-    <ReceiptCard selected={selected}>
-      <div className="flex-1 w-full flex flex-col" style={{ gap: GAP, backgroundColor: 'white' }}>
-        <Photo style={{ flex: 1 }} />
-        <Photo style={{ flex: 1 }} />
-        <Photo style={{ flex: 1 }} />
-      </div>
-    </ReceiptCard>
-  );
-}
-
-function FourFramePreview({ selected }: { selected: boolean }) {
-  return (
-    <ReceiptCard selected={selected}>
-      <div
-        className="flex-1 w-full grid grid-cols-2"
-        style={{ gap: GAP, backgroundColor: 'white' }}
-      >
-        <Photo />
-        <Photo />
-        <Photo />
-        <Photo />
-      </div>
-    </ReceiptCard>
-  );
-}
-
-// ─── Frame option definitions ────────────────────────────────────────────────
-
-const FRAME_OPTIONS: {
-  count: FrameCount;
-  label: string;
-  sub: string;
-  Preview: (props: { selected: boolean }) => JSX.Element;
-}[] = [
-  { count: 1, label: '1 FRAME',  sub: 'Full portrait',  Preview: OneFramePreview   },
-  { count: 2, label: '2 FRAMES', sub: 'Double strip',   Preview: TwoFramePreview   },
-  { count: 3, label: '3 FRAMES', sub: 'Triple strip',   Preview: ThreeFramePreview },
-  { count: 4, label: '4 FRAMES', sub: '2 × 2 grid',     Preview: FourFramePreview  },
+const FRAME_OPTIONS: { count: FrameCount; label: string; sub: string }[] = [
+  { count: 1, label: '1 FRAME',  sub: 'Full portrait'  },
+  { count: 2, label: '2 FRAMES', sub: 'Double strip'   },
+  { count: 3, label: '3 FRAMES', sub: 'Triple strip'   },
+  { count: 4, label: '4 FRAMES', sub: '2 × 2 grid'     },
 ];
-
-// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function Frames() {
   const [_, setLocation] = useLocation();
   const { frameCount, saveFrameCount } = useFrameSelection();
+  const { settings } = useSettings();
   const [selected, setSelected] = useState<FrameCount>(frameCount);
 
   function handleContinue() {
@@ -160,10 +40,10 @@ export default function Frames() {
         </div>
       </div>
 
-      {/* Cards — 2-col on mobile, 4-col on md+ (iPad landscape) */}
+      {/* Cards — 2-col on mobile, 4-col on md+ */}
       <div className="flex-1 px-4 md:px-8 py-4 overflow-auto">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6 max-w-5xl mx-auto">
-          {FRAME_OPTIONS.map(({ count, label, sub, Preview }) => {
+          {FRAME_OPTIONS.map(({ count, label, sub }) => {
             const isSelected = selected === count;
             return (
               <button
@@ -171,9 +51,20 @@ export default function Frames() {
                 onClick={() => setSelected(count)}
                 className="flex flex-col items-center gap-3 focus:outline-none group"
               >
-                {/* Selected ring wrapper */}
+                {/* Card shell — selection border wraps the scaled template */}
                 <div className="relative w-full">
-                  <Preview selected={isSelected} />
+                  <div
+                    className={[
+                      'w-full overflow-hidden transition-all duration-150',
+                      isSelected
+                        ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
+                        : 'outline outline-[1.5px] outline-border shadow-[2px_2px_0px_0px_rgba(0,0,0,0.12)] group-hover:outline-foreground/50 group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]',
+                    ].join(' ')}
+                  >
+                    {/* The actual template, scaled to fit */}
+                    <ScaledReceiptTemplate frameCount={count} settings={settings} />
+                  </div>
+
                   {/* Check badge */}
                   {isSelected && (
                     <div className="absolute top-2 right-2 w-5 h-5 bg-foreground flex items-center justify-center z-10">
