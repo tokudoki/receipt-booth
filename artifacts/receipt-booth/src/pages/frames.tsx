@@ -73,18 +73,16 @@ export default function Frames() {
               <button
                 key={count}
                 onClick={() => setSelected(count)}
-                className="flex flex-col items-center gap-3 focus:outline-none group"
+                className={[
+                  'flex flex-col items-center gap-3 focus:outline-none group transition-all duration-150',
+                  isSelected
+                    ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
+                    : 'outline outline-transparent hover:outline-[1.5px] hover:outline-foreground/40',
+                ].join(' ')}
               >
-                {/* Card shell — selection border wraps the scaled template */}
+                {/* Card shell — centers the receipt preview */}
                 <div className="relative w-full">
-                  <div
-                    className={[
-                      'w-full overflow-hidden transition-all duration-150',
-                      isSelected
-                        ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
-                        : 'outline outline-[1.5px] outline-border shadow-[2px_2px_0px_0px_rgba(0,0,0,0.12)] group-hover:outline-foreground/50 group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]',
-                    ].join(' ')}
-                  >
+                  <div className="w-full flex justify-center overflow-hidden">
                     {/* The actual template, scaled to fit within its grid cell */}
                     <ScaledReceiptTemplate frameCount={count} settings={settings} maxHeight={maxCardHeight} />
                   </div>
