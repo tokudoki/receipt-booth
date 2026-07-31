@@ -14,6 +14,10 @@ export async function getCameraStream(): Promise<MediaStream> {
 }
 
 export function captureFrame(videoElem: HTMLVideoElement): string {
+  if (videoElem.videoWidth === 0 || videoElem.videoHeight === 0) {
+    throw new Error('Camera is not ready yet — video dimensions are zero. Please wait for the preview to appear before shooting.');
+  }
+
   const canvas = document.createElement('canvas');
   // We want a square crop
   const size = Math.min(videoElem.videoWidth, videoElem.videoHeight);

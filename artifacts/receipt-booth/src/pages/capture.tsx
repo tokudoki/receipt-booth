@@ -20,18 +20,33 @@ export default function Capture() {
   const [step, setStep] = useState<Step>('init');
   const [countdown, setCountdown] = useState(3);
 
-  // Initialize camera
+  // Initialize camera — wait for the video to be delivering real frames before
+  // marking it ready. On mobile the stream can arrive but videoWidth stays 0
+  // until the first frame is decoded; 'loadeddata' fires at that point.
   useEffect(() => {
     clearPhotos();
 
     let activeStream: MediaStream | null = null;
+    const video = videoRef.current;
+
+    function onVideoReady() {
+      setStream(activeStream);
+    }
 
     getCameraStream()
       .then((s) => {
         activeStream = s;
-        setStream(s);
-        if (videoRef.current) {
-          videoRef.current.srcObject = s;
+        if (video) {
+          video.srcObject = s;
+          // 'loadeddata' fires when the first frame is available and
+          // videoWidth/videoHeight are guaranteed non-zero.
+          video.addEventListener('loadeddata', onVideoReady, { once: true });
+          // Fallback: 'playing' fires slightly later but covers edge cases where
+          // loadeddata alone doesn't fire on some Android WebViews.
+          video.addEventListener('playing', onVideoReady, { once: true });
+        } else {
+          // videoRef not yet mounted — fall back to the old path
+          setStream(s);
         }
       })
       .catch((e) => {
@@ -41,6 +56,10 @@ export default function Capture() {
     return () => {
       if (activeStream) {
         activeStream.getTracks().forEach(track => track.stop());
+      }
+      if (video) {
+        video.removeEventListener('loadeddata', onVideoReady);
+        video.removeEventListener('playing', onVideoReady);
       }
     };
   }, [clearPhotos]);
