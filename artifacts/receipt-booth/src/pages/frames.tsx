@@ -40,9 +40,9 @@ export default function Frames() {
         </div>
       </div>
 
-      {/* Cards — 2-col on mobile, 4-col on md+ */}
+      {/* Cards — 2-col on mobile+tablet, 4-col on desktop (lg+) */}
       <div className="flex-1 px-4 md:px-8 py-4 overflow-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 max-w-5xl mx-auto">
           {FRAME_OPTIONS.map(({ count, label, sub }) => {
             const isSelected = selected === count;
             return (
@@ -94,7 +94,7 @@ export default function Frames() {
         <div className="max-w-5xl mx-auto">
           <button
             onClick={handleContinue}
-            className="group relative w-full md:w-auto md:min-w-[280px]"
+            className="group relative w-full lg:w-auto lg:min-w-[360px]"
           >
             <div className="absolute inset-0 bg-foreground translate-x-2 translate-y-2 transition-transform group-hover:translate-x-3 group-hover:translate-y-3 group-active:translate-x-0.5 group-active:translate-y-0.5" />
             <div className="relative bg-background border-4 border-foreground text-foreground px-12 py-5 text-2xl md:text-3xl font-black uppercase tracking-widest text-center transition-transform group-active:translate-x-1 group-active:translate-y-1">
