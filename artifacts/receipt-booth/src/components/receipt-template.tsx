@@ -45,11 +45,12 @@ function getSlots(frameCount: FrameCount): Slot[] {
     }
 
     case 4: {
-      // 2×2 grid of square cells — matches Template 4
-      const cell = Math.floor((RECEIPT_W - PHOTO_GAP) / 2); // 285px
+      // 2×2 grid of portrait 3:4 cells
+      const cellW = Math.floor((RECEIPT_W - PHOTO_GAP) / 2); // 285px
+      const cellH = Math.round(cellW * 4 / 3);               // 380px
       return [
-        { w: cell, h: cell }, { w: cell, h: cell },
-        { w: cell, h: cell }, { w: cell, h: cell },
+        { w: cellW, h: cellH }, { w: cellW, h: cellH },
+        { w: cellW, h: cellH }, { w: cellW, h: cellH },
       ];
     }
   }
@@ -60,7 +61,7 @@ export const TEMPLATE_HEIGHT: Record<FrameCount, number> = {
   1: HEADER_H + RECEIPT_W + FOOTER_H,
   2: HEADER_H + Math.round(RECEIPT_W * 3 / 4) * 2 + PHOTO_GAP + FOOTER_H,
   3: HEADER_H + Math.round(RECEIPT_W * 3 / 4) * 3 + PHOTO_GAP * 2 + FOOTER_H,
-  4: HEADER_H + (Math.floor((RECEIPT_W - PHOTO_GAP) / 2) * 2 + PHOTO_GAP) + FOOTER_H,
+  4: HEADER_H + (Math.round(Math.floor((RECEIPT_W - PHOTO_GAP) / 2) * 4 / 3) * 2 + PHOTO_GAP) + FOOTER_H,
 };
 
 // ─── Shared header / footer primitives ───────────────────────────────────────
