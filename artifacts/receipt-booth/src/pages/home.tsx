@@ -14,7 +14,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
       <Link href="/settings" className="absolute top-6 right-6 p-3 rounded-full hover-elevate transition-transform active:scale-95 text-foreground z-10" data-testid="link-settings">
         <Settings size={32} strokeWidth={2.5} />
       </Link>

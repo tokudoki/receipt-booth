@@ -110,7 +110,7 @@ export default function Capture() {
 
   if (error) {
     return (
-      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center p-6 text-center">
+      <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-6 text-center overflow-hidden">
         <AlertCircle size={64} className="text-destructive mb-6" />
         <h2 className="text-3xl font-black uppercase mb-4">Camera Error</h2>
         <p className="text-xl font-mono mb-8 max-w-md">{error}</p>
@@ -125,10 +125,10 @@ export default function Capture() {
   }
 
   return (
-    <div className="min-h-[100dvh] w-full bg-foreground text-background flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] w-full bg-foreground text-background flex flex-col relative overflow-hidden">
 
       {/* Video Preview */}
-      <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+      <div className="flex-1 min-h-0 relative flex items-center justify-center overflow-hidden">
         <div className="w-full max-w-3xl aspect-square relative bg-black">
           {!stream && (
             <div className="absolute inset-0 flex items-center justify-center">

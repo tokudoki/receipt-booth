@@ -64,7 +64,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-background text-foreground pb-24">
+    <div className="h-[100dvh] overflow-hidden flex flex-col bg-background text-foreground">
       {/* Header */}
       <header className="sticky top-0 z-10 bg-background/90 backdrop-blur border-b border-border p-4 md:p-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-bold uppercase hover:opacity-70 transition-opacity">
@@ -75,7 +75,8 @@ export default function Settings() {
         <div className="w-20" /> {/* spacer */}
       </header>
 
-      <main className="max-w-2xl mx-auto p-6 md:p-12 space-y-12">
+      <main className="flex-1 min-h-0 overflow-y-auto">
+      <div className="max-w-2xl mx-auto p-6 md:p-12 space-y-12 pb-16">
         
         {/* Printer Section */}
         <section className="space-y-6">
@@ -202,6 +203,7 @@ export default function Settings() {
           </div>
         </section>
 
+      </div>
       </main>
     </div>
   );

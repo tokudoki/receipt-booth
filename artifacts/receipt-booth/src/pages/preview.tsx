@@ -94,7 +94,7 @@ export default function Preview() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col lg:flex-row bg-background text-foreground">
+    <div className="h-[100dvh] w-full flex flex-col lg:flex-row overflow-hidden bg-background text-foreground">
 
       {/*
         Off-screen ReceiptTemplate — rendered at full 576px so html-to-image
@@ -122,7 +122,7 @@ export default function Preview() {
       </div>
 
       {/* Left — dithered preview */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-border min-h-[50vh] lg:min-h-0 bg-[#E8E6E1] relative overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-border bg-[#E8E6E1] relative overflow-hidden">
         {isComposing ? (
           <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground font-mono uppercase">
             <Loader2 className="animate-spin" size={48} />
@@ -142,7 +142,7 @@ export default function Preview() {
       </div>
 
       {/* Right — actions */}
-      <div className="w-full lg:w-[420px] p-8 flex flex-col justify-center gap-6 bg-card">
+      <div className="w-full lg:w-[420px] shrink-0 p-6 flex flex-col justify-center gap-4 bg-card overflow-y-auto">
 
         <div className="space-y-2 mb-4">
           <h2 className="text-4xl font-black uppercase">Ready to Print</h2>
