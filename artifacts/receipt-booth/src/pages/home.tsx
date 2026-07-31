@@ -1,17 +1,28 @@
 import { Link } from 'wouter';
 import { Settings } from 'lucide-react';
-import { useLastReceipt } from '@/lib/store';
+import { useLastReceipt, useSettings } from '@/lib/store';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
   const { lastReceipt } = useLastReceipt();
-  const [isBluetoothSupported, setIsBluetoothSupported] = useState(true);
+  const { settings } = useSettings();
+  const [showBluetoothWarning, setShowBluetoothWarning] = useState(false);
 
   useEffect(() => {
-    if (!navigator.bluetooth) {
-      setIsBluetoothSupported(false);
+    // Only show the Bluetooth warning when:
+    // - No WiFi printer IP is set (user is in Bluetooth mode)
+    // - Web Bluetooth is genuinely absent
+    // - We are NOT running as a standalone PWA (iOS home-screen launch)
+    // iOS Safari never supports Web Bluetooth, so the warning would be
+    // permanently visible noise for iPad users — suppress it there entirely.
+    const isStandalone = (navigator as any).standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    const wifiConfigured = Boolean(settings.printerIp?.trim());
+
+    if (!wifiConfigured && !navigator.bluetooth && !isStandalone) {
+      setShowBluetoothWarning(true);
     }
-  }, []);
+  }, [settings.printerIp]);
 
   return (
     <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -19,7 +30,7 @@ export default function Home() {
         <Settings size={32} strokeWidth={2.5} />
       </Link>
 
-      {!isBluetoothSupported && (
+      {showBluetoothWarning && (
         <div className="absolute top-6 left-6 max-w-xs bg-destructive text-destructive-foreground p-4 text-sm font-mono uppercase font-bold z-10 shadow-lg">
           WARNING: WEB BLUETOOTH NOT SUPPORTED. USE CHROME OR EDGE ON ANDROID/MAC/PC.
         </div>
