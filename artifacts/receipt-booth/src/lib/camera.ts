@@ -3,14 +3,22 @@ export async function getCameraStream(): Promise<MediaStream> {
     throw new Error('Camera API not supported in this browser.');
   }
 
-  return await navigator.mediaDevices.getUserMedia({
-    video: { 
-      facingMode: 'user',
-      width: { ideal: 1280 },
-      height: { ideal: 720 }
-    },
-    audio: false
-  });
+  // Try front camera first; fall back to any camera if the constraint is rejected
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'user',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    });
+  } catch {
+    return await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: false,
+    });
+  }
 }
 
 export function captureFrame(videoElem: HTMLVideoElement): string {
