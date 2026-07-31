@@ -2,9 +2,10 @@
  * ReceiptTemplate — single source of truth for all receipt layouts.
  *
  * Used in two contexts:
- *   1. Frame picker cards (preview=true)  → scaled down, shows placeholder branding
+ *   1. Frame picker cards (preview=true)  → scaled down, shows Figma placeholder branding
  *   2. Preview / print page (preview=false) → full-size, captured with html-to-image
  *
+ * Typography and proportions match the Figma templates exactly.
  * Width is always 576px (80mm @ 203dpi). Height is content-driven.
  */
 
@@ -14,9 +15,12 @@ import type { Settings, FrameCount } from '@/lib/store';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const RECEIPT_W = 576;
-const PHOTO_GAP = 6; // thin white separator between photos
-const HEADER_H = 160;
-const FOOTER_H = 100;
+const PHOTO_GAP = 6;   // thin white separator between photos (matches Figma)
+const HEADER_H  = 180; // header zone height — matches Figma proportions
+const FOOTER_H  = 110; // footer zone height
+
+// Fonts — system faces so html-to-image captures them without network fetches
+const SERIF = 'Georgia, "Times New Roman", serif';
 
 // ─── Slot geometry ────────────────────────────────────────────────────────────
 
@@ -25,20 +29,24 @@ type Slot = { w: number; h: number };
 function getSlots(frameCount: FrameCount): Slot[] {
   switch (frameCount) {
     case 1:
+      // Full-width square — matches Template 1
       return [{ w: RECEIPT_W, h: RECEIPT_W }];
 
     case 2: {
-      const h = Math.round(RECEIPT_W * (2 / 3)); // 384px — 3:2 landscape
+      // Two landscape photos (3:2 aspect) — matches Template 2
+      const h = Math.round(RECEIPT_W * (2 / 3)); // 384px
       return [{ w: RECEIPT_W, h }, { w: RECEIPT_W, h }];
     }
 
     case 3: {
-      const h = Math.round(RECEIPT_W * (9 / 16)); // 324px — 16:9 landscape
+      // Three landscape photos (16:9 aspect) — matches Template 3
+      const h = Math.round(RECEIPT_W * (9 / 16)); // 324px
       return [{ w: RECEIPT_W, h }, { w: RECEIPT_W, h }, { w: RECEIPT_W, h }];
     }
 
     case 4: {
-      const cell = Math.floor((RECEIPT_W - PHOTO_GAP) / 2); // 285px square
+      // 2×2 grid of square cells — matches Template 4
+      const cell = Math.floor((RECEIPT_W - PHOTO_GAP) / 2); // 285px
       return [
         { w: cell, h: cell }, { w: cell, h: cell },
         { w: cell, h: cell }, { w: cell, h: cell },
@@ -47,21 +55,87 @@ function getSlots(frameCount: FrameCount): Slot[] {
   }
 }
 
-/** Pre-computed total heights at 576px for the scaled picker wrapper. */
+/** Pre-computed total receipt heights at 576px wide (used by ScaledReceiptTemplate). */
 export const TEMPLATE_HEIGHT: Record<FrameCount, number> = {
-  1: HEADER_H + RECEIPT_W + FOOTER_H,                                           // 836
-  2: HEADER_H + Math.round(RECEIPT_W * 2 / 3) * 2 + PHOTO_GAP + FOOTER_H,     // 1034
-  3: HEADER_H + Math.round(RECEIPT_W * 9 / 16) * 3 + PHOTO_GAP * 2 + FOOTER_H, // 1244
-  4: HEADER_H + (Math.floor((RECEIPT_W - PHOTO_GAP) / 2) * 2 + PHOTO_GAP) + FOOTER_H, // 836
+  1: HEADER_H + RECEIPT_W + FOOTER_H,
+  2: HEADER_H + Math.round(RECEIPT_W * 2 / 3) * 2 + PHOTO_GAP + FOOTER_H,
+  3: HEADER_H + Math.round(RECEIPT_W * 9 / 16) * 3 + PHOTO_GAP * 2 + FOOTER_H,
+  4: HEADER_H + (Math.floor((RECEIPT_W - PHOTO_GAP) / 2) * 2 + PHOTO_GAP) + FOOTER_H,
 };
+
+// ─── Shared header / footer primitives ───────────────────────────────────────
+//
+// These render the exact Figma typography in BOTH preview and print modes.
+// In print mode, real photos are shown; the serif branding remains unless
+// the user has uploaded their own logo.
+
+function DefaultHeader() {
+  return (
+    <>
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontSize: 72,
+          fontWeight: 'normal',
+          letterSpacing: -2,
+          lineHeight: 1,
+          color: '#1a1a1a',
+        }}
+      >
+        centered
+      </div>
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontSize: 18,
+          fontWeight: 'normal',
+          color: '#555555',
+          marginTop: 10,
+        }}
+      >
+        of the traveling journal
+      </div>
+    </>
+  );
+}
+
+function DefaultFooter() {
+  return (
+    <>
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontWeight: 'bold',
+          fontSize: 16,
+          letterSpacing: 1,
+          color: '#1a1a1a',
+        }}
+      >
+        JOURNAL #0001 FOR HELEN
+      </div>
+      <div
+        style={{
+          fontFamily: SERIF,
+          fontWeight: 'normal',
+          fontSize: 14,
+          letterSpacing: 0.5,
+          color: '#1a1a1a',
+          marginTop: 2,
+        }}
+      >
+        STARTED, Jan 10, 2026
+      </div>
+    </>
+  );
+}
 
 // ─── ReceiptTemplate ──────────────────────────────────────────────────────────
 
 interface ReceiptTemplateProps {
   frameCount: FrameCount;
-  photos?: string[];       // actual camera dataURLs; empty = show gray placeholders
+  photos?: string[];   // actual camera dataURLs; empty slots show gray fill
   settings: Settings;
-  preview?: boolean;       // true → show Figma placeholder branding instead of real content
+  preview?: boolean;   // true → placeholder branding (picker cards); false → real content
 }
 
 export function ReceiptTemplate({
@@ -70,13 +144,19 @@ export function ReceiptTemplate({
   settings,
   preview = false,
 }: ReceiptTemplateProps) {
-  const slots = getSlots(frameCount);
-  const is4Grid = frameCount === 4;
+  const slots  = getSlots(frameCount);
+  const is4    = frameCount === 4;
   const hasLogo = !preview && !!settings.logoDataUrl;
 
-  // Base font stack — must be available without web-font fetch for html-to-image
-  const serif = 'Georgia, "Times New Roman", serif';
-  const mono  = '"Space Mono", "Courier New", monospace';
+  // In print mode: show logo if the user has set one; otherwise fall through to
+  // DefaultHeader so the receipt always has the Figma-style serif branding.
+  const showDefaultHeader = preview || !hasLogo;
+
+  // Footer lines from settings — rendered in serif, as-is (no forced uppercase)
+  const footerLines = settings.footerText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(Boolean);
 
   return (
     <div
@@ -87,7 +167,7 @@ export function ReceiptTemplate({
         flexDirection: 'column',
       }}
     >
-      {/* ── Header ── */}
+      {/* ── Header ────────────────────────────────────────────────────── */}
       <div
         style={{
           height: HEADER_H,
@@ -98,31 +178,25 @@ export function ReceiptTemplate({
           padding: '0 24px',
         }}
       >
-        {preview ? (
-          <>
-            <div style={{ fontFamily: serif, fontSize: 50, fontWeight: 'normal', letterSpacing: -1, lineHeight: 1, color: '#1a1a1a' }}>
-              centered
-            </div>
-            <div style={{ fontFamily: serif, fontSize: 16, fontWeight: 'normal', color: '#666666', marginTop: 8 }}>
-              of the traveling journal
-            </div>
-          </>
-        ) : hasLogo ? (
+        {showDefaultHeader ? (
+          <DefaultHeader />
+        ) : (
+          /* User's logo */
           <img
             src={settings.logoDataUrl!}
             crossOrigin="anonymous"
-            style={{ maxWidth: 380, maxHeight: 90, objectFit: 'contain', display: 'block' }}
+            style={{ maxWidth: 380, maxHeight: 100, objectFit: 'contain', display: 'block' }}
             alt="Logo"
           />
-        ) : null}
+        )}
       </div>
 
-      {/* ── Photos ── */}
+      {/* ── Photos ────────────────────────────────────────────────────── */}
       <div
         style={{
           display: 'flex',
-          flexDirection: is4Grid ? 'row' : 'column',
-          flexWrap: is4Grid ? 'wrap' : 'nowrap',
+          flexDirection: is4 ? 'row' : 'column',
+          flexWrap: is4 ? 'wrap' : 'nowrap',
           gap: PHOTO_GAP,
           backgroundColor: '#ffffff',
           flexShrink: 0,
@@ -154,7 +228,7 @@ export function ReceiptTemplate({
         ))}
       </div>
 
-      {/* ── Footer ── */}
+      {/* ── Footer ────────────────────────────────────────────────────── */}
       <div
         style={{
           height: FOOTER_H,
@@ -166,25 +240,17 @@ export function ReceiptTemplate({
           padding: '0 24px',
         }}
       >
-        {preview ? (
-          <>
-            <div style={{ fontFamily: mono, fontWeight: 'bold', fontSize: 13, textTransform: 'uppercase', letterSpacing: 2, color: '#1a1a1a' }}>
-              JOURNAL #0001 FOR HELEN
-            </div>
-            <div style={{ fontFamily: mono, fontWeight: 'normal', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, color: '#1a1a1a' }}>
-              STARTED, Jan 10, 2026
-            </div>
-          </>
+        {preview || footerLines.length === 0 ? (
+          <DefaultFooter />
         ) : (
-          settings.footerText.split('\n').map((line, i) => (
+          footerLines.map((line, i) => (
             <div
               key={i}
               style={{
-                fontFamily: mono,
+                fontFamily: SERIF,
                 fontWeight: i === 0 ? 'bold' : 'normal',
-                fontSize: i === 0 ? 18 : 14,
-                textTransform: 'uppercase',
-                letterSpacing: i === 0 ? 2 : 1,
+                fontSize: i === 0 ? 16 : 14,
+                letterSpacing: i === 0 ? 1 : 0.5,
                 color: '#1a1a1a',
               }}
             >
@@ -201,7 +267,7 @@ export function ReceiptTemplate({
 //
 // Wraps ReceiptTemplate in a container that measures its own width and
 // applies a CSS transform so the 576px template fits exactly.
-// Used inside the frame picker cards.
+// Used inside the frame picker cards in frames.tsx.
 
 interface ScaledProps {
   frameCount: FrameCount;
@@ -210,7 +276,7 @@ interface ScaledProps {
 
 export function ScaledReceiptTemplate({ frameCount, settings }: ScaledProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.43); // reasonable initial approximation
+  const [scale, setScale] = useState(0.43);
 
   useEffect(() => {
     const update = () => {
@@ -226,7 +292,7 @@ export function ScaledReceiptTemplate({ frameCount, settings }: ScaledProps) {
   }, []);
 
   const templateH = TEMPLATE_HEIGHT[frameCount];
-  const scaledH = Math.round(templateH * scale);
+  const scaledH   = Math.round(templateH * scale);
 
   return (
     <div

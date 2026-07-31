@@ -39,11 +39,12 @@ export default function Preview() {
 
         if (!templateRef.current) throw new Error('Template element not found');
 
-        // Capture the rendered DOM node at exactly 576px (pixelRatio:1)
+        // Capture the rendered DOM node at exactly 576px (pixelRatio:1).
+        // skipFonts:true avoids CORS errors from external Google Fonts CSS;
+        // the template intentionally uses only system serif fonts (Georgia).
         const captured = await toCanvas(templateRef.current, {
           pixelRatio: 1,
-          // Inline all styles so html-to-image faithfully reproduces the layout
-          skipFonts: false,
+          skipFonts: true,
         });
         canvasRef.current = captured;
 
