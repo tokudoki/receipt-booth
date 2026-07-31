@@ -275,16 +275,19 @@ interface ScaledProps {
   settings: Settings;
   /** Optional height cap (px). When set, scale = min(widthScale, heightScale). */
   maxHeight?: number;
+  /** When true, renders the selection outline + check badge directly on the receipt. */
+  selected?: boolean;
 }
 
-export function ScaledReceiptTemplate({ frameCount, settings, maxHeight }: ScaledProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function ScaledReceiptTemplate({ frameCount, settings, maxHeight, selected }: ScaledProps) {
+  // Measurement div spans full cell width so ResizeObserver knows available space.
+  const measureRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.43);
 
   useEffect(() => {
     const update = () => {
-      if (!containerRef.current) return;
-      const widthScale  = containerRef.current.clientWidth / RECEIPT_W;
+      if (!measureRef.current) return;
+      const widthScale  = measureRef.current.clientWidth / RECEIPT_W;
       const heightScale = maxHeight !== undefined
         ? maxHeight / TEMPLATE_HEIGHT[frameCount]
         : Infinity;
@@ -293,35 +296,54 @@ export function ScaledReceiptTemplate({ frameCount, settings, maxHeight }: Scale
     update();
 
     const ro = new ResizeObserver(update);
-    if (containerRef.current) ro.observe(containerRef.current);
+    if (measureRef.current) ro.observe(measureRef.current);
     return () => ro.disconnect();
   }, [frameCount, maxHeight]);
 
   const templateH = TEMPLATE_HEIGHT[frameCount];
   const scaledH   = Math.round(templateH * scale);
+  const scaledW   = Math.round(RECEIPT_W * scale);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ width: '100%', height: scaledH, overflow: 'hidden', position: 'relative' }}
-    >
+    /* Full-width measurement anchor — zero height so it doesn't shift layout */
+    <div ref={measureRef} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+      {/* Exactly-sized receipt box — outline hugs only the receipt shape */}
       <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: RECEIPT_W,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-          pointerEvents: 'none',
-        }}
+        style={{ width: scaledW, height: scaledH, overflow: 'hidden', position: 'relative', flexShrink: 0 }}
+        className={
+          selected
+            ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all duration-150'
+            : 'group-hover:outline group-hover:outline-[1.5px] group-hover:outline-foreground/40 transition-all duration-150'
+        }
       >
-        <ReceiptTemplate
-          frameCount={frameCount}
-          photos={[]}
-          settings={settings}
-          preview
-        />
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: RECEIPT_W,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            pointerEvents: 'none',
+          }}
+        >
+          <ReceiptTemplate
+            frameCount={frameCount}
+            photos={[]}
+            settings={settings}
+            preview
+          />
+        </div>
+
+        {/* Check badge */}
+        {selected && (
+          <div className="absolute top-2 right-2 w-5 h-5 bg-foreground flex items-center justify-center z-10">
+            <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+              <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -73,30 +73,15 @@ export default function Frames() {
               <button
                 key={count}
                 onClick={() => setSelected(count)}
-                className={[
-                  'flex flex-col items-center gap-3 focus:outline-none group transition-all duration-150',
-                  isSelected
-                    ? 'outline outline-[3px] outline-foreground shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]'
-                    : 'outline outline-transparent hover:outline-[1.5px] hover:outline-foreground/40',
-                ].join(' ')}
+                className="flex flex-col items-center gap-3 focus:outline-none group w-full"
               >
-                {/* Card shell — centers the receipt preview */}
-                <div className="relative w-full">
-                  <div className="w-full flex justify-center overflow-hidden">
-                    {/* The actual template, scaled to fit within its grid cell */}
-                    <ScaledReceiptTemplate frameCount={count} settings={settings} maxHeight={maxCardHeight} />
-                  </div>
-
-                  {/* Check badge */}
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 bg-foreground flex items-center justify-center z-10">
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2"
-                          strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+                {/* Template — outline and check badge are rendered inside ScaledReceiptTemplate */}
+                <ScaledReceiptTemplate
+                  frameCount={count}
+                  settings={settings}
+                  maxHeight={maxCardHeight}
+                  selected={isSelected}
+                />
 
                 {/* Label */}
                 <div className="text-center">
