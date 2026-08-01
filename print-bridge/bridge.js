@@ -78,6 +78,18 @@ const server = http.createServer((req, res) => {
   const parsed   = new URL(req.url, `http://localhost:${BRIDGE_PORT}`);
   const pathname = parsed.pathname;
 
+  // ── CORS — required when the app is hosted on a different origin (e.g. Netlify)
+  res.setHeader('Access-Control-Allow-Origin',  '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Bridge-Token');
+
+  // Handle preflight — browser sends this before the real POST /print
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   // ── Print job: POST /print?ip=<printer-ip> ──────────────────────────────
   if (req.method === 'POST' && pathname === '/print') {
     // Optional shared-secret check
