@@ -15,8 +15,8 @@ import { getSessionOrderNumber, getReceiptDateString } from '@/lib/store';
 
 const RECEIPT_W = 800;
 const PHOTO_GAP = 8;
-const HEADER_H  = 280;
-const FOOTER_H  = 360;
+const HEADER_H  = 360;
+const FOOTER_H  = 520;
 
 const SERIF  = 'Georgia, "Times New Roman", serif';
 const MONO   = '"Courier New", Courier, monospace';
@@ -74,6 +74,18 @@ function Dash({ mx = 20, my = 12 }: { mx?: number; my?: number }) {
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boolean }) {
+  // Full-width header image (non-preview only)
+  if (!preview && settings.headerImageDataUrl) {
+    return (
+      <img
+        src={settings.headerImageDataUrl}
+        crossOrigin="anonymous"
+        style={{ width: RECEIPT_W, display: 'block', flexShrink: 0 }}
+        alt="Header"
+      />
+    );
+  }
+
   const title    = preview ? 'Title Text'      : (settings.headerTitle?.trim() || 'Receipt Booth');
   const orderNum = preview ? '0000'            : getSessionOrderNumber();
   const dateStr  = preview ? 'AUGUST 22, 2026' : getReceiptDateString();
@@ -87,18 +99,18 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
       flexDirection: 'column',
       flexShrink: 0,
     }}>
-      {/* Text block — grows to fill space above the dashed line */}
+      {/* Text block — 160 px top padding, then content, then dash */}
       <div style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
         paddingLeft: 32,
         paddingRight: 32,
         gap: 8,
-        paddingTop: 20,
-        paddingBottom: 20,
+        paddingTop: 160,
+        paddingBottom: 0,
       }}>
         {hasLogo ? (
           <img
@@ -127,7 +139,7 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
           DATE {dateStr}
         </div>
       </div>
-      {/* 12px gap above dash + 12px below (marginBottom pushes photo away) */}
+      {/* Dash + 12 px gap before photo */}
       <Dash mx={20} my={0} />
       <div style={{ height: 12, flexShrink: 0 }} />
     </div>
@@ -137,6 +149,18 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boolean }) {
+  // Full-width footer image (non-preview only)
+  if (!preview && settings.footerImageDataUrl) {
+    return (
+      <img
+        src={settings.footerImageDataUrl}
+        crossOrigin="anonymous"
+        style={{ width: RECEIPT_W, display: 'block', flexShrink: 0 }}
+        alt="Footer"
+      />
+    );
+  }
+
   const itemText   = preview ? 'x1 photo session' : (settings.itemText?.trim()   || '');
   const itemStatus = preview ? 'pre-order'         : (settings.itemStatus?.trim() || '');
   const hasItem    = itemText.length > 0;
@@ -178,7 +202,7 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
         </>
       )}
 
-      {/* Spacer + body text + Thank You */}
+      {/* Body text + Thank You — 160 px bottom padding */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -188,7 +212,7 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
         paddingLeft: 32,
         paddingRight: 32,
         paddingTop: 20,
-        paddingBottom: 36,
+        paddingBottom: 160,
         gap: 6,
       }}>
         {bodyLines.map((line, i) => (
@@ -199,6 +223,9 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
             textAlign: 'center',
             letterSpacing: 0.3,
             lineHeight: 1.3,
+            overflowWrap: 'break-word',
+            wordBreak: 'break-word',
+            width: '100%',
           }}>
             {line}
           </div>

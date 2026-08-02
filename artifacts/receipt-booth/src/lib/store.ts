@@ -13,6 +13,18 @@ export type Settings = {
   footerText: string;
   qrCodeUrl: string;
   logoDataUrl: string | null;
+  /**
+   * Full-width header image. When set, replaces the entire header zone
+   * (title / ORDER / DATE). Image is drawn at RECEIPT_W; height is
+   * determined by the image's own aspect ratio.
+   */
+  headerImageDataUrl: string | null;
+  /**
+   * Full-width footer image. When set, replaces the entire footer zone
+   * (item row / body text / Thank You). Drawn at RECEIPT_W; height from
+   * aspect ratio.
+   */
+  footerImageDataUrl: string | null;
   printerName: string | null;
   /** IP address of the MUNBYN P905 on the local network, e.g. "192.168.1.42" */
   printerIp: string;
@@ -38,6 +50,8 @@ export const defaultSettings: Settings = {
   footerText: '',
   qrCodeUrl: '',
   logoDataUrl: null,
+  headerImageDataUrl: null,
+  footerImageDataUrl: null,
   printerName: null,
   printerIp: '',
   bridgeUrl: '',

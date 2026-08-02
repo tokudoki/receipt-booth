@@ -23,6 +23,8 @@ export default function Settings() {
   const [isDiscovering, setIsDiscovering] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const headerImageInputRef = useRef<HTMLInputElement>(null);
+  const footerImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     saveSettings({ headerTitle, itemText, itemStatus, footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret });
@@ -81,12 +83,37 @@ export default function Settings() {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
         saveSettings({ logoDataUrl: event.target.result as string });
         toast({ title: 'Logo updated' });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleHeaderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        saveSettings({ headerImageDataUrl: event.target.result as string });
+        toast({ title: 'Header image updated' });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFooterImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        saveSettings({ footerImageDataUrl: event.target.result as string });
+        toast({ title: 'Footer image updated' });
       }
     };
     reader.readAsDataURL(file);
@@ -227,11 +254,52 @@ export default function Settings() {
 
           <div className="space-y-8">
 
+            {/* Header Image */}
+            <div className="space-y-2">
+              <label className="font-bold uppercase tracking-wider block">Header Image</label>
+              <p className="text-sm text-muted-foreground font-thermal mb-4">
+                Upload your designed header artwork. It will fill the full receipt width.
+                When set, this replaces the Header Title text below.
+              </p>
+              <div className="flex items-end gap-6">
+                <div className="w-32 h-20 border-2 border-dashed border-border bg-card flex items-center justify-center relative overflow-hidden">
+                  {settings.headerImageDataUrl ? (
+                    <img src={settings.headerImageDataUrl} alt="Header" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="text-muted-foreground opacity-50" size={28} />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={headerImageInputRef}
+                    className="hidden"
+                    onChange={handleHeaderImageUpload}
+                  />
+                  <button
+                    onClick={() => headerImageInputRef.current?.click()}
+                    className="px-6 py-2 bg-secondary text-secondary-foreground font-bold uppercase block w-full text-center"
+                  >
+                    Upload Header
+                  </button>
+                  {settings.headerImageDataUrl && (
+                    <button
+                      onClick={() => saveSettings({ headerImageDataUrl: null })}
+                      className="px-6 py-2 text-destructive font-bold uppercase flex items-center gap-2 justify-center w-full hover:bg-destructive/10"
+                    >
+                      <Trash2 size={16} /> Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Header Title */}
             <div className="space-y-2">
-              <label className="font-bold uppercase tracking-wider block">Header Title</label>
+              <label className="font-bold uppercase tracking-wider block">Header Title <span className="font-normal normal-case text-muted-foreground">(text fallback)</span></label>
               <p className="text-sm text-muted-foreground font-thermal mb-2">
-                Large text at the top of every receipt, e.g. your event name.
+                Used when no Header Image is uploaded.
               </p>
               <input
                 type="text"
@@ -270,11 +338,52 @@ export default function Settings() {
               </div>
             </div>
 
+            {/* Footer Image */}
+            <div className="space-y-2">
+              <label className="font-bold uppercase tracking-wider block">Footer Image</label>
+              <p className="text-sm text-muted-foreground font-thermal mb-4">
+                Upload your designed footer artwork. It will fill the full receipt width.
+                When set, this replaces the item row, body text, and "Thank You!" below.
+              </p>
+              <div className="flex items-end gap-6">
+                <div className="w-32 h-20 border-2 border-dashed border-border bg-card flex items-center justify-center relative overflow-hidden">
+                  {settings.footerImageDataUrl ? (
+                    <img src={settings.footerImageDataUrl} alt="Footer" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="text-muted-foreground opacity-50" size={28} />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    ref={footerImageInputRef}
+                    className="hidden"
+                    onChange={handleFooterImageUpload}
+                  />
+                  <button
+                    onClick={() => footerImageInputRef.current?.click()}
+                    className="px-6 py-2 bg-secondary text-secondary-foreground font-bold uppercase block w-full text-center"
+                  >
+                    Upload Footer
+                  </button>
+                  {settings.footerImageDataUrl && (
+                    <button
+                      onClick={() => saveSettings({ footerImageDataUrl: null })}
+                      className="px-6 py-2 text-destructive font-bold uppercase flex items-center gap-2 justify-center w-full hover:bg-destructive/10"
+                    >
+                      <Trash2 size={16} /> Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Footer Body Text */}
             <div className="space-y-2">
-              <label className="font-bold uppercase tracking-wider block">Footer Body Text</label>
+              <label className="font-bold uppercase tracking-wider block">Footer Body Text <span className="font-normal normal-case text-muted-foreground">(text fallback)</span></label>
               <p className="text-sm text-muted-foreground font-thermal mb-2">
-                Centered text above "Thank You!" — great for a tagline or message. Leave blank to skip.
+                Used when no Footer Image is uploaded. Centered above "Thank You!".
               </p>
               <textarea
                 value={footerText}
