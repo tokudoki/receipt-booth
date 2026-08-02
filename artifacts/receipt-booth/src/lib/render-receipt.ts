@@ -154,9 +154,9 @@ async function drawHeader(
     // Text block: title(34px) + gap(6) + ORDER(11px) + gap(4) + DATE(11px) ≈ 82px
     const titleSize     = 34;
     const titleAscender = Math.round(titleSize * 0.76);
-    const subSize       = 11;
+    const subSize       = 15;
     const subAscender   = Math.round(subSize * 0.76);
-    const blockH        = titleSize * 1.2 + 6 + subSize * 1.2 + 4 + subSize * 1.2;
+    const blockH        = titleSize * 1.2 + 8 + subSize * 1.3 + 5 + subSize * 1.3;
     const available     = HEADER_H - 14; // 14px for the dashed line zone
     const blockTop      = (available - blockH) / 2;
 
@@ -164,8 +164,8 @@ async function drawHeader(
     drawText(ctx, title, RECEIPT_W / 2, blockTop + titleAscender, `normal ${titleSize}px ${SERIF}`, '#1a1a1a');
 
     // ORDER / DATE in monospace, darker grey
-    const orderY = blockTop + titleSize * 1.2 + 6 + subAscender;
-    const dateY  = orderY + subSize * 1.2 + 4 + subAscender;
+    const orderY = blockTop + titleSize * 1.2 + 8 + subAscender;
+    const dateY  = orderY + subSize * 1.3 + 5 + subAscender;
     drawText(ctx, `ORDER #${orderNum}`, RECEIPT_W / 2, orderY, `normal ${subSize}px ${MONO}`, '#555555');
     drawText(ctx, `DATE ${dateStr}`,    RECEIPT_W / 2, dateY,  `normal ${subSize}px ${MONO}`, '#555555');
   }
@@ -194,9 +194,9 @@ function drawFooter(
 
   // ── Item row ──
   if (hasItem) {
-    const itemFontSize = 12;
+    const itemFontSize = 15;
     const itemAscender = Math.round(itemFontSize * 0.76);
-    const rowY         = y + 14 + itemAscender;
+    const rowY         = y + 16 + itemAscender;
     const font         = `normal ${itemFontSize}px ${MONO}`;
     drawText(ctx, itemText,   16,               rowY, font, '#333333', 'left');
     if (itemStatus) {
@@ -208,22 +208,22 @@ function drawFooter(
   }
 
   // ── Body text ──
-  const bodyFontSize = 13;
+  const bodyFontSize = 16;
   const bodyAscender = Math.round(bodyFontSize * 0.76);
   const bodyLineH    = Math.round(bodyFontSize * 1.4);
 
   if (bodyLines.length > 0) {
-    y += 2; // small top nudge
+    y += 4;
     for (const line of bodyLines) {
       y += bodyAscender;
       drawText(ctx, line, RECEIPT_W / 2, y, `normal ${bodyFontSize}px ${SERIF}`, '#555555');
-      y += bodyFontSize - bodyAscender + 4; // descender + gap
+      y += bodyFontSize - bodyAscender + 5; // descender + gap
     }
-    y += 12; // gap before Thank You
+    y += 14; // gap before Thank You
   }
 
   // ── Thank You! ──
-  const tySize     = 20;
+  const tySize     = 26;
   const tyAscender = Math.round(tySize * 0.76);
 
   // Centre "Thank You!" in the remaining footer space

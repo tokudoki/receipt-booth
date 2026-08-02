@@ -118,10 +118,10 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
             {title}
           </div>
         )}
-        <div style={{ fontFamily: MONO, fontSize: 11, color: '#555', letterSpacing: 0.3 }}>
+        <div style={{ fontFamily: MONO, fontSize: 15, color: '#555', letterSpacing: 0.3 }}>
           ORDER #{orderNum}
         </div>
-        <div style={{ fontFamily: MONO, fontSize: 11, color: '#555', letterSpacing: 0.3 }}>
+        <div style={{ fontFamily: MONO, fontSize: 15, color: '#555', letterSpacing: 0.3 }}>
           DATE {dateStr}
         </div>
       </div>
@@ -161,7 +161,7 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
             paddingTop: 14,
             paddingBottom: 12,
             fontFamily: MONO,
-            fontSize: 12,
+            fontSize: 15,
             color: '#333',
             letterSpacing: 0.2,
             flexShrink: 0,
@@ -189,7 +189,7 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
         {bodyLines.map((line, i) => (
           <div key={i} style={{
             fontFamily: SERIF,
-            fontSize: 13,
+            fontSize: 16,
             color: '#555',
             textAlign: 'center',
             letterSpacing: 0.3,
@@ -199,11 +199,11 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
         ))}
         <div style={{
           fontFamily: SERIF,
-          fontSize: 20,
+          fontSize: 26,
           fontWeight: 'normal',
           color: '#1a1a1a',
           letterSpacing: 0.5,
-          marginTop: bodyLines.length > 0 ? 10 : 0,
+          marginTop: bodyLines.length > 0 ? 12 : 0,
         }}>
           Thank You!
         </div>
