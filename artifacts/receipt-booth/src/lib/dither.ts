@@ -1,15 +1,23 @@
-export function floydSteinbergDither(imageData: ImageData): ImageData {
+/**
+ * Floyd-Steinberg error-diffusion dither.
+ *
+ * @param imageData  Source pixel data (modified in a copy, not in-place).
+ * @param brightness Multiplier applied to each pixel's grayscale value before
+ *                   thresholding. 1.0 = no change; 1.4 = 40% brighter (recommended
+ *                   default for thermal printing to counteract ink bloom).
+ */
+export function floydSteinbergDither(imageData: ImageData, brightness = 1.0): ImageData {
   const { width, height, data } = imageData;
   const newImageData = new ImageData(new Uint8ClampedArray(data), width, height);
   const newData = newImageData.data;
 
-  // Convert to grayscale first
+  // Convert to grayscale and apply brightness boost
   for (let i = 0; i < newData.length; i += 4) {
     const r = newData[i];
     const g = newData[i + 1];
     const b = newData[i + 2];
-    // Luminance formula
-    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+    // Luminance formula + brightness multiplier (clamped to 0-255)
+    const gray = Math.min(255, (0.299 * r + 0.587 * g + 0.114 * b) * brightness);
     newData[i] = gray;
     newData[i + 1] = gray;
     newData[i + 2] = gray;

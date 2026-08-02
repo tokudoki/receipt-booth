@@ -28,6 +28,7 @@ export async function printReceiptWifi(
   printerIp: string,
   bridgeUrl: string,
   bridgeSecret = '',
+  brightness = 1.0,
 ): Promise<void> {
   assertValidIp(printerIp);
   // Scale canvas to 576px wide (80mm at 203 dpi)
@@ -44,9 +45,9 @@ export async function printReceiptWifi(
   const width  = printCanvas.width;
   const height = printCanvas.height;
 
-  // Floyd-Steinberg dither → 1-bit raster
+  // Floyd-Steinberg dither → 1-bit raster (brightness pre-boost to counteract ink bloom)
   const imgData     = ctx.getImageData(0, 0, width, height);
-  const dithered    = floydSteinbergDither(imgData);
+  const dithered    = floydSteinbergDither(imgData, brightness);
   const data        = dithered.data;
   const widthBytes  = Math.ceil(width / 8);
   const rasterData  = new Uint8Array(widthBytes * height);
@@ -191,7 +192,7 @@ export function isPrinterConnected(): boolean {
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-export async function printReceipt(canvas: HTMLCanvasElement): Promise<void> {
+export async function printReceipt(canvas: HTMLCanvasElement, brightness = 1.0): Promise<void> {
   if (!printCharacteristic) {
     throw new Error('Printer not connected');
   }

@@ -43,7 +43,7 @@ export default function Preview() {
         const dctx = dithered.getContext('2d')!;
         dctx.drawImage(captured, 0, 0);
         const imgData = dctx.getImageData(0, 0, dithered.width, dithered.height);
-        dctx.putImageData(floydSteinbergDither(imgData), 0, 0);
+        dctx.putImageData(floydSteinbergDither(imgData, settings.printBrightness ?? 1.4), 0, 0);
 
         const url = dithered.toDataURL('image/png');
         setReceiptUrl(url);
@@ -68,7 +68,7 @@ export default function Preview() {
         // WiFi path — send to local bridge, no pairing needed
         setPrintStatus('printing');
         // Pass bridgeUrl as-is (empty string is valid — printReceiptWifi derives from window.location.origin)
-        await printReceiptWifi(canvasRef.current, settings.printerIp, settings.bridgeUrl, settings.bridgeSecret || '');
+        await printReceiptWifi(canvasRef.current, settings.printerIp, settings.bridgeUrl, settings.bridgeSecret || '', settings.printBrightness ?? 1.4);
       } else {
         // Bluetooth fallback
         if (!isPrinterConnected()) {
@@ -76,7 +76,7 @@ export default function Preview() {
           await connectPrinter();
         }
         setPrintStatus('printing');
-        await printReceipt(canvasRef.current);
+        await printReceipt(canvasRef.current, settings.printBrightness ?? 1.4);
       }
       setPrintStatus('done');
       setTimeout(() => setPrintStatus('idle'), 3000);

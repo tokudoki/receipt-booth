@@ -17,6 +17,7 @@ export default function Settings() {
   const [printerIp, setPrinterIp] = useState(settings.printerIp ?? '');
   const [bridgeUrl, setBridgeUrl] = useState(settings.bridgeUrl ?? '');
   const [bridgeSecret, setBridgeSecret] = useState(settings.bridgeSecret ?? '');
+  const [printBrightness, setPrintBrightness] = useState(settings.printBrightness ?? 1.4);
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [printerConnected, setPrinterConnected] = useState(isPrinterConnected());
@@ -27,7 +28,7 @@ export default function Settings() {
   const footerImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
-    saveSettings({ headerTitle, itemText, itemStatus, footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret });
+    saveSettings({ headerTitle, itemText, itemStatus, footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret, printBrightness });
     toast({ title: 'Settings saved successfully' });
   };
 
@@ -393,6 +394,39 @@ export default function Settings() {
                 placeholder="e.g. Thank you for coming!"
                 className="w-full p-4 border-2 border-border bg-background font-mono text-lg outline-none focus:border-foreground transition-colors resize-none"
               />
+            </div>
+
+            {/* Print Brightness */}
+            <div className="space-y-3">
+              <div>
+                <label className="font-bold uppercase tracking-wider block">Print Brightness</label>
+                <p className="text-sm text-muted-foreground font-thermal mt-1">
+                  Lighten photos before dithering so they don't print too dark. 140% is a good starting point for most indoor selfies.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range"
+                  min={50}
+                  max={200}
+                  step={10}
+                  value={Math.round(printBrightness * 100)}
+                  onChange={(e) => {
+                    const v = Number(e.target.value) / 100;
+                    setPrintBrightness(v);
+                    saveSettings({ printBrightness: v });
+                  }}
+                  className="flex-1 accent-foreground"
+                />
+                <span className="font-mono font-bold text-lg w-14 text-right">
+                  {Math.round(printBrightness * 100)}%
+                </span>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground font-thermal px-0.5">
+                <span>50% (darker)</span>
+                <span>100% (original)</span>
+                <span>200% (lighter)</span>
+              </div>
             </div>
 
             {/* Logo */}

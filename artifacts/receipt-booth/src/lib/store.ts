@@ -41,6 +41,12 @@ export type Settings = {
    * Leave blank if bridge.js has no SECRET configured.
    */
   bridgeSecret: string;
+  /**
+   * Brightness multiplier applied to each pixel before Floyd-Steinberg
+   * dithering. 1.0 = no change; 1.4 = 40% brighter (default — compensates
+   * for thermal ink bloom that darkens prints). Range: 0.5–2.0.
+   */
+  printBrightness: number;
 };
 
 export const defaultSettings: Settings = {
@@ -56,6 +62,7 @@ export const defaultSettings: Settings = {
   printerIp: '',
   bridgeUrl: '',
   bridgeSecret: '',
+  printBrightness: 1.4,
 };
 
 /**
