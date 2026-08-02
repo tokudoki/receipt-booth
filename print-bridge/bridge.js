@@ -162,6 +162,52 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── Printer discovery: GET /discover ────────────────────────────────────
+  if (req.method === 'GET' && pathname === '/discover') {
+    const localIp = getLocalIp();
+    const parts   = localIp.split('.');
+    if (parts.length !== 4) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: 'Could not determine local subnet' }));
+      return;
+    }
+
+    const subnet  = parts.slice(0, 3).join('.');
+    const TIMEOUT = 300; // ms per host
+    const found   = [];
+
+    const checks = [];
+    for (let i = 1; i <= 254; i++) {
+      const ip = `${subnet}.${i}`;
+      checks.push(
+        new Promise((resolve) => {
+          const sock = new net.Socket();
+          let done   = false;
+          const finish = (success) => {
+            if (done) return;
+            done = true;
+            sock.destroy();
+            if (success) found.push(ip);
+            resolve();
+          };
+          sock.setTimeout(TIMEOUT);
+          sock.on('connect', () => finish(true));
+          sock.on('timeout', () => finish(false));
+          sock.on('error',   () => finish(false));
+          sock.connect(PRINTER_PORT, ip);
+        })
+      );
+    }
+
+    console.log(`[bridge] Scanning ${subnet}.1-254 on port ${PRINTER_PORT}…`);
+    Promise.all(checks).then(() => {
+      console.log(`[bridge] Discovery done — found: ${found.length ? found.join(', ') : 'none'}`);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, printers: found }));
+    });
+    return;
+  }
+
   // ── Static kiosk app ─────────────────────────────────────────────────────
   if (hasStatic && req.method === 'GET') {
     serveStatic(pathname, res);

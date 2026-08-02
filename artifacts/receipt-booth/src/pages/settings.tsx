@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link } from 'wouter';
 import { useSettings } from '@/lib/store';
 import { connectPrinter, isPrinterConnected, disconnectPrinter } from '@/lib/printer';
-import { ArrowLeft, Bluetooth, Wifi, Image as ImageIcon, CheckCircle, Trash2, Printer } from 'lucide-react';
+import { ArrowLeft, Bluetooth, Wifi, Image as ImageIcon, CheckCircle, Trash2, Printer, Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
@@ -17,6 +17,7 @@ export default function Settings() {
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [printerConnected, setPrinterConnected] = useState(isPrinterConnected());
+  const [isDiscovering, setIsDiscovering] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -47,6 +48,31 @@ export default function Settings() {
     await disconnectPrinter();
     setPrinterConnected(false);
     toast({ title: 'Printer disconnected' });
+  };
+
+  const handleDiscover = async () => {
+    const base = bridgeUrl.trim();
+    if (!base) {
+      toast({ title: 'Bridge URL required', description: 'Enter the Bridge URL (e.g. http://192.168.1.x:3001) before scanning.', variant: 'destructive' });
+      return;
+    }
+    setIsDiscovering(true);
+    try {
+      const res = await fetch(`${base}/discover`);
+      if (!res.ok) throw new Error(`Bridge returned ${res.status}`);
+      const data = await res.json();
+      if (data.printers && data.printers.length > 0) {
+        setPrinterIp(data.printers[0]);
+        saveSettings({ printerIp: data.printers[0], footerText, qrCodeUrl, bridgeUrl, bridgeSecret });
+        toast({ title: `Printer found: ${data.printers[0]}`, description: data.printers.length > 1 ? `${data.printers.length - 1} other(s) also found` : undefined });
+      } else {
+        toast({ title: 'No printers found', description: 'No devices listening on port 9100 were found on the local network.', variant: 'destructive' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Discovery failed', description: `Could not reach the bridge. Check the Bridge URL field. (${err.message})`, variant: 'destructive' });
+    } finally {
+      setIsDiscovering(false);
+    }
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,14 +125,26 @@ export default function Settings() {
             <div className="space-y-3 pt-2">
               <div className="space-y-1">
                 <label className="text-sm font-bold uppercase tracking-wider block">Printer IP Address</label>
-                <input
-                  type="text"
-                  value={printerIp}
-                  onChange={(e) => setPrinterIp(e.target.value)}
-                  onBlur={handleSave}
-                  placeholder="e.g. 192.168.1.42"
-                  className="w-full p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={printerIp}
+                    onChange={(e) => setPrinterIp(e.target.value)}
+                    onBlur={handleSave}
+                    placeholder="e.g. 192.168.1.42"
+                    className="flex-1 p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDiscover}
+                    disabled={isDiscovering}
+                    title="Scan local network for printers on port 9100"
+                    className="px-4 py-3 border-2 border-border bg-secondary text-secondary-foreground font-bold uppercase text-sm flex items-center gap-2 whitespace-nowrap hover:bg-foreground hover:text-background hover:border-foreground transition-colors disabled:opacity-50"
+                  >
+                    {isDiscovering ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                    {isDiscovering ? 'Scanning…' : 'Find Printer'}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-bold uppercase tracking-wider block">Bridge URL <span className="font-normal normal-case text-muted-foreground">(optional)</span></label>
