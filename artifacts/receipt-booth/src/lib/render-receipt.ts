@@ -21,6 +21,8 @@ const PHOTO_GAP = 6;
 const HEADER_H  = 200;
 const FOOTER_H  = 200; // minimum footer height — grows with content
 
+const MONO = '"Courier New", Courier, monospace';
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -149,24 +151,23 @@ async function drawHeader(
       drawText(ctx, title, RECEIPT_W / 2, 74, `normal 42px ${SERIF}`, '#1a1a1a');
     }
   } else {
-    // Vertically centre the text block above the dashed line (at HEADER_H - 12)
-    // Content block: title(~52px) + gap(5) + ORDER(14) + gap(5) + DATE(14) = ~90px
-    const blockH    = 90;
-    const available = HEADER_H - 12; // leave 12px for the dashed line zone
-    const blockTop  = (available - blockH) / 2;
-
-    // Title — ascender ≈ 0.76 × fontSize for Georgia
-    const titleSize     = 42;
+    // Text block: title(34px) + gap(6) + ORDER(11px) + gap(4) + DATE(11px) ≈ 82px
+    const titleSize     = 34;
     const titleAscender = Math.round(titleSize * 0.76);
+    const subSize       = 11;
+    const subAscender   = Math.round(subSize * 0.76);
+    const blockH        = titleSize * 1.2 + 6 + subSize * 1.2 + 4 + subSize * 1.2;
+    const available     = HEADER_H - 14; // 14px for the dashed line zone
+    const blockTop      = (available - blockH) / 2;
+
+    // Title in serif
     drawText(ctx, title, RECEIPT_W / 2, blockTop + titleAscender, `normal ${titleSize}px ${SERIF}`, '#1a1a1a');
 
-    // ORDER / DATE — small, grey
-    const subSize     = 12;
-    const subAscender = Math.round(subSize * 0.76);
-    const orderY      = blockTop + titleSize * 1.24 + 5 + subAscender;
-    const dateY       = orderY + subSize * 1.24 + 5 + subAscender;
-    drawText(ctx, `ORDER #${orderNum}`, RECEIPT_W / 2, orderY, `normal ${subSize}px ${SERIF}`, '#888888');
-    drawText(ctx, `DATE ${dateStr}`,    RECEIPT_W / 2, dateY,  `normal ${subSize}px ${SERIF}`, '#888888');
+    // ORDER / DATE in monospace, darker grey
+    const orderY = blockTop + titleSize * 1.2 + 6 + subAscender;
+    const dateY  = orderY + subSize * 1.2 + 4 + subAscender;
+    drawText(ctx, `ORDER #${orderNum}`, RECEIPT_W / 2, orderY, `normal ${subSize}px ${MONO}`, '#555555');
+    drawText(ctx, `DATE ${dateStr}`,    RECEIPT_W / 2, dateY,  `normal ${subSize}px ${MONO}`, '#555555');
   }
 
   // ── Dashed separator at bottom of header ──
@@ -196,7 +197,7 @@ function drawFooter(
     const itemFontSize = 12;
     const itemAscender = Math.round(itemFontSize * 0.76);
     const rowY         = y + 14 + itemAscender;
-    const font         = `normal ${itemFontSize}px ${SERIF}`;
+    const font         = `normal ${itemFontSize}px ${MONO}`;
     drawText(ctx, itemText,   16,               rowY, font, '#333333', 'left');
     if (itemStatus) {
       drawText(ctx, itemStatus, RECEIPT_W - 16, rowY, font, '#333333', 'right');

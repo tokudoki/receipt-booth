@@ -18,7 +18,8 @@ const PHOTO_GAP = 6;
 const HEADER_H  = 200;
 const FOOTER_H  = 200;
 
-const SERIF = 'Georgia, "Times New Roman", serif';
+const SERIF  = 'Georgia, "Times New Roman", serif';
+const MONO   = '"Courier New", Courier, monospace';
 
 // ─── Slot geometry ────────────────────────────────────────────────────────────
 
@@ -107,20 +108,20 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
         ) : (
           <div style={{
             fontFamily: SERIF,
-            fontSize: 42,
+            fontSize: 34,
             fontWeight: 'normal',
-            letterSpacing: -1,
-            lineHeight: 1,
+            letterSpacing: -0.5,
+            lineHeight: 1.1,
             color: '#1a1a1a',
             textAlign: 'center',
           }}>
             {title}
           </div>
         )}
-        <div style={{ fontFamily: SERIF, fontSize: 12, color: '#888', letterSpacing: 0.5 }}>
+        <div style={{ fontFamily: MONO, fontSize: 11, color: '#555', letterSpacing: 0.3 }}>
           ORDER #{orderNum}
         </div>
-        <div style={{ fontFamily: SERIF, fontSize: 12, color: '#888', letterSpacing: 0.5 }}>
+        <div style={{ fontFamily: MONO, fontSize: 11, color: '#555', letterSpacing: 0.3 }}>
           DATE {dateStr}
         </div>
       </div>
@@ -159,10 +160,10 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
             paddingRight: 16,
             paddingTop: 14,
             paddingBottom: 12,
-            fontFamily: SERIF,
+            fontFamily: MONO,
             fontSize: 12,
             color: '#333',
-            letterSpacing: 0.3,
+            letterSpacing: 0.2,
             flexShrink: 0,
           }}>
             <span>{itemText}</span>
