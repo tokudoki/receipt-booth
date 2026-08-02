@@ -9,6 +9,9 @@ export default function Settings() {
   const { settings, saveSettings } = useSettings();
   const { toast } = useToast();
   
+  const [headerTitle, setHeaderTitle] = useState(settings.headerTitle ?? '');
+  const [itemText, setItemText] = useState(settings.itemText ?? '');
+  const [itemStatus, setItemStatus] = useState(settings.itemStatus ?? '');
   const [footerText, setFooterText] = useState(settings.footerText);
   const [qrCodeUrl, setQrCodeUrl] = useState(settings.qrCodeUrl);
   const [printerIp, setPrinterIp] = useState(settings.printerIp ?? '');
@@ -22,7 +25,7 @@ export default function Settings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
-    saveSettings({ footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret });
+    saveSettings({ headerTitle, itemText, itemStatus, footerText, qrCodeUrl, printerIp, bridgeUrl, bridgeSecret });
     toast({ title: 'Settings saved successfully' });
   };
 
@@ -63,7 +66,7 @@ export default function Settings() {
       const data = await res.json();
       if (data.printers && data.printers.length > 0) {
         setPrinterIp(data.printers[0]);
-        saveSettings({ printerIp: data.printers[0], footerText, qrCodeUrl, bridgeUrl, bridgeSecret });
+        saveSettings({ printerIp: data.printers[0], headerTitle, itemText, itemStatus, footerText, qrCodeUrl, bridgeUrl, bridgeSecret });
         toast({ title: `Printer found: ${data.printers[0]}`, description: data.printers.length > 1 ? `${data.printers.length - 1} other(s) also found` : undefined });
       } else {
         toast({ title: 'No printers found', description: 'No devices listening on port 9100 were found on the local network.', variant: 'destructive' });
@@ -213,24 +216,82 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* Receipt Customization Section */}
+        {/* Receipt Content Section */}
         <section className="space-y-6">
           <div className="border-b-4 border-foreground pb-2">
             <h2 className="text-3xl font-black uppercase flex items-center gap-3">
               <ImageIcon size={32} />
-              Receipt Style
+              Receipt Content
             </h2>
           </div>
-          
+
           <div className="space-y-8">
-            
+
+            {/* Header Title */}
+            <div className="space-y-2">
+              <label className="font-bold uppercase tracking-wider block">Header Title</label>
+              <p className="text-sm text-muted-foreground font-thermal mb-2">
+                Large text at the top of every receipt, e.g. your event name.
+              </p>
+              <input
+                type="text"
+                value={headerTitle}
+                onChange={(e) => setHeaderTitle(e.target.value)}
+                onBlur={handleSave}
+                placeholder="Receipt Booth"
+                className="w-full p-4 border-2 border-border bg-background font-mono text-lg outline-none focus:border-foreground transition-colors"
+              />
+            </div>
+
+            {/* Item Row */}
+            <div className="space-y-2">
+              <label className="font-bold uppercase tracking-wider block">Item Row</label>
+              <p className="text-sm text-muted-foreground font-thermal mb-2">
+                Two-column row above the footer text, e.g. "x1 photo session" and "pre-order".
+                Leave blank to hide this row.
+              </p>
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  value={itemText}
+                  onChange={(e) => setItemText(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="x1 photo session"
+                  className="flex-1 p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                />
+                <input
+                  type="text"
+                  value={itemStatus}
+                  onChange={(e) => setItemStatus(e.target.value)}
+                  onBlur={handleSave}
+                  placeholder="pre-order"
+                  className="w-36 p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Footer Body Text */}
+            <div className="space-y-2">
+              <label className="font-bold uppercase tracking-wider block">Footer Body Text</label>
+              <p className="text-sm text-muted-foreground font-thermal mb-2">
+                Centered text above "Thank You!" — great for a tagline or message. Leave blank to skip.
+              </p>
+              <textarea
+                value={footerText}
+                onChange={(e) => setFooterText(e.target.value)}
+                onBlur={handleSave}
+                rows={3}
+                placeholder="e.g. Thank you for coming!"
+                className="w-full p-4 border-2 border-border bg-background font-mono text-lg outline-none focus:border-foreground transition-colors resize-none"
+              />
+            </div>
+
             {/* Logo */}
             <div className="space-y-2">
-              <label className="font-bold uppercase tracking-wider block">Brand Logo</label>
+              <label className="font-bold uppercase tracking-wider block">Logo <span className="font-normal normal-case text-muted-foreground">(optional)</span></label>
               <p className="text-sm text-muted-foreground font-thermal mb-4">
-                Will be printed in black and white at the bottom left. Max height 80px.
+                When set, replaces the Header Title with your logo image.
               </p>
-              
               <div className="flex items-end gap-6">
                 <div className="w-32 h-32 border-2 border-dashed border-border bg-card flex items-center justify-center relative overflow-hidden">
                   {settings.logoDataUrl ? (
@@ -239,23 +300,22 @@ export default function Settings() {
                     <ImageIcon className="text-muted-foreground opacity-50" size={32} />
                   )}
                 </div>
-                
                 <div className="space-y-2">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
+                  <input
+                    type="file"
+                    accept="image/*"
                     ref={fileInputRef}
                     className="hidden"
                     onChange={handleLogoUpload}
                   />
-                  <button 
+                  <button
                     onClick={() => fileInputRef.current?.click()}
                     className="px-6 py-2 bg-secondary text-secondary-foreground font-bold uppercase block w-full text-center"
                   >
                     Upload Logo
                   </button>
                   {settings.logoDataUrl && (
-                    <button 
+                    <button
                       onClick={() => saveSettings({ logoDataUrl: null })}
                       className="px-6 py-2 text-destructive font-bold uppercase flex items-center gap-2 justify-center w-full hover:bg-destructive/10"
                     >
@@ -264,34 +324,6 @@ export default function Settings() {
                   )}
                 </div>
               </div>
-            </div>
-
-            {/* QR Code */}
-            <div className="space-y-2">
-              <label className="font-bold uppercase tracking-wider block">QR Code URL</label>
-              <p className="text-sm text-muted-foreground font-thermal mb-2">Printed at the bottom right.</p>
-              <input 
-                type="url" 
-                value={qrCodeUrl}
-                onChange={(e) => setQrCodeUrl(e.target.value)}
-                onBlur={handleSave}
-                placeholder="https://yourwebsite.com"
-                className="w-full p-4 border-2 border-border bg-background font-mono text-lg outline-none focus:border-foreground transition-colors"
-              />
-            </div>
-
-            {/* Footer Text */}
-            <div className="space-y-2">
-              <label className="font-bold uppercase tracking-wider block">Footer Text</label>
-              <p className="text-sm text-muted-foreground font-thermal mb-2">Centered at the very bottom. Keep lines short.</p>
-              <textarea 
-                value={footerText}
-                onChange={(e) => setFooterText(e.target.value)}
-                onBlur={handleSave}
-                rows={3}
-                placeholder="RECEIPT BOOTH\nTHANK YOU"
-                className="w-full p-4 border-2 border-border bg-background font-mono text-lg uppercase outline-none focus:border-foreground transition-colors resize-none"
-              />
             </div>
 
           </div>

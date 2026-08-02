@@ -3,6 +3,13 @@ import { useState, useCallback } from 'react';
 export type FrameCount = 1 | 2 | 3 | 4;
 
 export type Settings = {
+  /** Large serif title at the top of every receipt, e.g. "DOKI FEST 2026" */
+  headerTitle: string;
+  /** Left-side item label in the footer row, e.g. "x1 photo session" */
+  itemText: string;
+  /** Right-side status label in the footer row, e.g. "pre-order" */
+  itemStatus: string;
+  /** Optional body text in the footer (shown above "Thank You!") */
   footerText: string;
   qrCodeUrl: string;
   logoDataUrl: string | null;
@@ -25,14 +32,52 @@ export type Settings = {
 };
 
 export const defaultSettings: Settings = {
-  footerText: "Footer Text\nThank You!",
-  qrCodeUrl: "https://replit.com",
+  headerTitle: '',
+  itemText: '',
+  itemStatus: '',
+  footerText: '',
+  qrCodeUrl: '',
   logoDataUrl: null,
   printerName: null,
   printerIp: '',
   bridgeUrl: '',
   bridgeSecret: '',
 };
+
+/**
+ * Returns a zero-padded 4-digit order number for the current session.
+ * Increments a persistent counter in localStorage; caches the value
+ * in sessionStorage so the same number is used throughout one session.
+ */
+export function getSessionOrderNumber(): string {
+  const SESSION_KEY = 'receipt-booth-session-order';
+  const COUNTER_KEY = 'receipt-booth-order-counter';
+  try {
+    const cached = sessionStorage.getItem(SESSION_KEY);
+    if (cached) return cached;
+    const prev = parseInt(localStorage.getItem(COUNTER_KEY) || '0', 10);
+    const next  = (prev % 9999) + 1;
+    const padded = String(next).padStart(4, '0');
+    localStorage.setItem(COUNTER_KEY, String(next));
+    sessionStorage.setItem(SESSION_KEY, padded);
+    return padded;
+  } catch {
+    return '0001';
+  }
+}
+
+/** Returns today's date formatted as "AUGUST 2, 2026" (uppercase). */
+export function getReceiptDateString(): string {
+  try {
+    return new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).toUpperCase();
+  } catch {
+    return new Date().toDateString().toUpperCase();
+  }
+}
 
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(() => {
