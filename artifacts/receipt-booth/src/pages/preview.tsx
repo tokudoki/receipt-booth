@@ -106,7 +106,7 @@ export default function Preview() {
             <img
               src={receiptUrl}
               alt="Receipt Preview"
-              className="max-h-full max-w-[380px] w-auto object-contain mix-blend-multiply bg-white p-2 pb-6 shadow-xl border-b-4 border-r-2 border-border/20 transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out"
+              className="max-h-full max-w-[320px] w-auto object-contain mix-blend-multiply bg-white p-2 pb-6 shadow-xl border-b-4 border-r-2 border-border/20 transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out"
             />
           </div>
         ) : null}

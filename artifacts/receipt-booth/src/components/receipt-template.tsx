@@ -13,10 +13,10 @@ import { getSessionOrderNumber, getReceiptDateString } from '@/lib/store';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const RECEIPT_W = 576;
-const PHOTO_GAP = 6;
-const HEADER_H  = 200;
-const FOOTER_H  = 200;
+const RECEIPT_W = 800;
+const PHOTO_GAP = 8;
+const HEADER_H  = 280;
+const FOOTER_H  = 360;
 
 const SERIF  = 'Georgia, "Times New Roman", serif';
 const MONO   = '"Courier New", Courier, monospace';
@@ -58,12 +58,14 @@ export const TEMPLATE_HEIGHT: Record<FrameCount, number> = {
 
 // ─── Dashed line ──────────────────────────────────────────────────────────────
 
-function Dash({ mx = 16 }: { mx?: number }) {
+function Dash({ mx = 20, my = 12 }: { mx?: number; my?: number }) {
   return (
     <div style={{
       marginLeft: mx,
       marginRight: mx,
-      borderTop: '1px dashed #AAAAAA',
+      marginTop: my,
+      marginBottom: my,
+      borderTop: '2px dashed #888888',
       flexShrink: 0,
     }} />
   );
@@ -92,25 +94,25 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingLeft: 24,
-        paddingRight: 24,
-        gap: 5,
-        paddingTop: 8,
-        paddingBottom: 12,
+        paddingLeft: 32,
+        paddingRight: 32,
+        gap: 8,
+        paddingTop: 20,
+        paddingBottom: 20,
       }}>
         {hasLogo ? (
           <img
             src={settings.logoDataUrl!}
             crossOrigin="anonymous"
-            style={{ maxWidth: 360, maxHeight: 72, objectFit: 'contain', display: 'block' }}
+            style={{ maxWidth: 480, maxHeight: 100, objectFit: 'contain', display: 'block' }}
             alt="Logo"
           />
         ) : (
           <div style={{
             fontFamily: SERIF,
-            fontSize: 34,
+            fontSize: 48,
             fontWeight: 'normal',
-            letterSpacing: -0.5,
+            letterSpacing: -1,
             lineHeight: 1.1,
             color: '#1a1a1a',
             textAlign: 'center',
@@ -118,14 +120,16 @@ function ReceiptHeader({ settings, preview }: { settings: Settings; preview: boo
             {title}
           </div>
         )}
-        <div style={{ fontFamily: MONO, fontSize: 15, color: '#555', letterSpacing: 0.3 }}>
+        <div style={{ fontFamily: MONO, fontSize: 40, color: '#555', letterSpacing: 0.3, lineHeight: 1.15 }}>
           ORDER #{orderNum}
         </div>
-        <div style={{ fontFamily: MONO, fontSize: 15, color: '#555', letterSpacing: 0.3 }}>
+        <div style={{ fontFamily: MONO, fontSize: 40, color: '#555', letterSpacing: 0.3, lineHeight: 1.15 }}>
           DATE {dateStr}
         </div>
       </div>
-      <Dash />
+      {/* 12px gap above dash + 12px below (marginBottom pushes photo away) */}
+      <Dash mx={20} my={0} />
+      <div style={{ height: 12, flexShrink: 0 }} />
     </div>
   );
 }
@@ -138,7 +142,7 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
   const hasItem    = itemText.length > 0;
 
   const bodyLines = preview
-    ? []
+    ? ['Lorem ipsum dolor sit amet consectetur.']
     : settings.footerText.split('\n').map(l => l.trim()).filter(Boolean);
 
   return (
@@ -156,20 +160,21 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingLeft: 16,
-            paddingRight: 16,
-            paddingTop: 14,
-            paddingBottom: 12,
+            paddingLeft: 24,
+            paddingRight: 24,
+            paddingTop: 20,
+            paddingBottom: 16,
             fontFamily: MONO,
-            fontSize: 15,
+            fontSize: 40,
             color: '#333',
             letterSpacing: 0.2,
+            lineHeight: 1.15,
             flexShrink: 0,
           }}>
             <span>{itemText}</span>
             {itemStatus && <span>{itemStatus}</span>}
           </div>
-          <Dash />
+          <Dash mx={20} my={0} />
         </>
       )}
 
@@ -180,30 +185,32 @@ function ReceiptFooter({ settings, preview }: { settings: Settings; preview: boo
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingLeft: 24,
-        paddingRight: 24,
-        paddingTop: 12,
-        paddingBottom: 24,
-        gap: 4,
+        paddingLeft: 32,
+        paddingRight: 32,
+        paddingTop: 20,
+        paddingBottom: 36,
+        gap: 6,
       }}>
         {bodyLines.map((line, i) => (
           <div key={i} style={{
             fontFamily: SERIF,
-            fontSize: 16,
+            fontSize: 40,
             color: '#555',
             textAlign: 'center',
             letterSpacing: 0.3,
+            lineHeight: 1.3,
           }}>
             {line}
           </div>
         ))}
         <div style={{
           fontFamily: SERIF,
-          fontSize: 26,
+          fontSize: 48,
           fontWeight: 'normal',
           color: '#1a1a1a',
           letterSpacing: 0.5,
-          marginTop: bodyLines.length > 0 ? 12 : 0,
+          lineHeight: 1.2,
+          marginTop: bodyLines.length > 0 ? 16 : 0,
         }}>
           Thank You!
         </div>
@@ -287,7 +294,7 @@ interface ScaledProps {
 
 export function ScaledReceiptTemplate({ frameCount, settings, maxHeight, selected }: ScaledProps) {
   const measureRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.43);
+  const [scale, setScale] = useState(0.31);
 
   useEffect(() => {
     const update = () => {
