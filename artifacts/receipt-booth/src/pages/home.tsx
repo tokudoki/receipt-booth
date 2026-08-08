@@ -71,7 +71,7 @@ export default function Home() {
       <Link
         href="/settings"
         onClick={handleSettingsClick}
-        className="absolute top-6 right-6 p-3 rounded-full hover-elevate transition-transform active:scale-95 text-foreground z-10"
+        className="absolute top-4 right-4 p-4 rounded-full hover-elevate transition-transform active:scale-95 text-foreground z-20"
         data-testid="link-settings"
         aria-label="Settings"
       >
@@ -79,8 +79,8 @@ export default function Home() {
       </Link>
 
       {showBluetoothWarning && (
-        <div className="absolute top-6 left-6 max-w-xs bg-destructive text-destructive-foreground p-4 text-sm font-mono uppercase font-bold z-10 shadow-lg">
-          WARNING: WEB BLUETOOTH NOT SUPPORTED. USE CHROME OR EDGE ON ANDROID/MAC/PC.
+        <div className="absolute top-20 left-4 right-16 bg-destructive text-destructive-foreground p-3 text-xs font-mono uppercase font-bold z-10 shadow-lg">
+          Bluetooth not supported — use Chrome or Edge on Android / Mac / PC.
         </div>
       )}
 
