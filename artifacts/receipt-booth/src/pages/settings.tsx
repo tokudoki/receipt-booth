@@ -160,21 +160,21 @@ export default function Settings() {
             <div className="space-y-3 pt-2">
               <div className="space-y-1">
                 <label className="text-sm font-bold uppercase tracking-wider block">Printer IP Address</label>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <input
                     type="text"
                     value={printerIp}
                     onChange={(e) => setPrinterIp(e.target.value)}
                     onBlur={handleSave}
                     placeholder="e.g. 192.168.1.42"
-                    className="flex-1 p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
+                    className="w-full p-3 border-2 border-border bg-background font-mono text-base outline-none focus:border-foreground transition-colors"
                   />
                   <button
                     type="button"
                     onClick={handleDiscover}
                     disabled={isDiscovering}
                     title="Scan local network for printers on port 9100"
-                    className="px-4 py-3 border-2 border-border bg-secondary text-secondary-foreground font-bold uppercase text-sm flex items-center gap-2 whitespace-nowrap hover:bg-foreground hover:text-background hover:border-foreground transition-colors disabled:opacity-50"
+                    className="w-full px-4 py-3 border-2 border-border bg-secondary text-secondary-foreground font-bold uppercase text-sm flex items-center justify-center gap-2 hover:bg-foreground hover:text-background hover:border-foreground transition-colors disabled:opacity-50"
                   >
                     {isDiscovering ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
                     {isDiscovering ? 'Scanning…' : 'Find Printer'}
