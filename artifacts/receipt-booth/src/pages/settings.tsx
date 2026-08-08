@@ -21,6 +21,7 @@ export default function Settings() {
   const [enabledFrameCounts, setEnabledFrameCounts] = useState<FrameCount[]>(
     settings.enabledFrameCounts?.length > 0 ? settings.enabledFrameCounts : [1, 2, 3, 4]
   );
+  const [settingsPin, setSettingsPin] = useState(settings.settingsPin ?? '');
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [printerConnected, setPrinterConnected] = useState(isPrinterConnected());
@@ -485,6 +486,47 @@ export default function Settings() {
           </div>
 
           <div className="space-y-8">
+
+            {/* Settings PIN */}
+            <div className="space-y-3">
+              <div>
+                <label className="font-bold uppercase tracking-wider block">Settings PIN</label>
+                <p className="text-sm text-muted-foreground font-thermal mt-1">
+                  Set a 4-digit PIN to stop guests from opening Settings. Leave blank for no PIN.
+                </p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  pattern="[0-9]{4}"
+                  value={settingsPin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                    setSettingsPin(val);
+                    saveSettings({ settingsPin: val });
+                  }}
+                  placeholder="e.g. 1234"
+                  className="w-36 p-3 border-2 border-border bg-background font-mono text-2xl tracking-widest outline-none focus:border-foreground transition-colors"
+                />
+                {settingsPin && (
+                  <button
+                    onClick={() => { setSettingsPin(''); saveSettings({ settingsPin: '' }); toast({ title: 'PIN cleared' }); }}
+                    className="px-5 py-3 border-2 border-border font-bold uppercase text-sm hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 size={16} /> Clear PIN
+                  </button>
+                )}
+              </div>
+              {settingsPin.length > 0 && settingsPin.length < 4 && (
+                <p className="text-xs text-destructive font-thermal">PIN must be exactly 4 digits.</p>
+              )}
+              {settingsPin.length === 4 && (
+                <p className="text-xs text-muted-foreground font-thermal">✓ PIN is set. Guests will see a keypad when they tap the settings icon.</p>
+              )}
+            </div>
+
             {/* Frame Options */}
             <div className="space-y-3">
               <div>

@@ -53,6 +53,11 @@ export type Settings = {
    * selection screen is skipped and that count is used automatically.
    */
   enabledFrameCounts: FrameCount[];
+  /**
+   * 4-digit PIN required to open Settings from the home screen.
+   * Empty string means no PIN is set and Settings opens freely.
+   */
+  settingsPin: string;
 };
 
 export const defaultSettings: Settings = {
@@ -70,6 +75,7 @@ export const defaultSettings: Settings = {
   bridgeSecret: '',
   printBrightness: 1.4,
   enabledFrameCounts: [1, 2, 3, 4],
+  settingsPin: '',
 };
 
 /**
