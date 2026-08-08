@@ -145,24 +145,26 @@ export default function Preview() {
         </button>
 
         <div className="flex gap-4">
-          <button
-            onClick={() => {
-              if (receiptUrl) {
-                const a = document.createElement('a');
-                a.href = receiptUrl;
-                a.download = `receipt-booth-${Date.now()}.png`;
-                a.click();
-              }
-            }}
-            disabled={!receiptUrl}
-            className="flex-1 flex items-center justify-center gap-2 border-2 border-border p-4 font-bold uppercase hover:bg-secondary transition-colors"
-          >
-            <Download size={20} /> Save
-          </button>
+          {settings.showSaveButton !== false && (
+            <button
+              onClick={() => {
+                if (receiptUrl) {
+                  const a = document.createElement('a');
+                  a.href = receiptUrl;
+                  a.download = `receipt-booth-${Date.now()}.png`;
+                  a.click();
+                }
+              }}
+              disabled={!receiptUrl}
+              className="flex-1 flex items-center justify-center gap-2 border-2 border-border p-4 font-bold uppercase hover:bg-secondary transition-colors"
+            >
+              <Download size={20} /> Save
+            </button>
+          )}
 
           <button
             onClick={() => { clearPhotos(); setLocation('/capture'); }}
-            className="flex-1 flex items-center justify-center gap-2 border-2 border-border p-4 font-bold uppercase hover:bg-secondary transition-colors"
+            className={`${settings.showSaveButton !== false ? 'flex-1' : 'w-full'} flex items-center justify-center gap-2 border-2 border-border p-4 font-bold uppercase hover:bg-secondary transition-colors`}
           >
             <RefreshCcw size={20} /> Retake
           </button>

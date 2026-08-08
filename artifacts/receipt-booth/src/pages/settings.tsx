@@ -527,6 +527,24 @@ export default function Settings() {
               )}
             </div>
 
+            {/* Show Save Button */}
+            <div className="space-y-3">
+              <label
+                className="flex items-start gap-4 cursor-pointer select-none"
+                onClick={() => saveSettings({ showSaveButton: !(settings.showSaveButton !== false) })}
+              >
+                <div className={`mt-0.5 w-10 h-6 shrink-0 rounded-full border-2 transition-colors relative ${settings.showSaveButton !== false ? 'bg-foreground border-foreground' : 'bg-card border-border'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background transition-transform ${settings.showSaveButton !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </div>
+                <div>
+                  <p className="font-bold uppercase tracking-wider leading-tight">Show Save Button</p>
+                  <p className="text-sm text-muted-foreground font-thermal mt-1">
+                    Show the Save button on the Ready to Print screen. Turn off to prevent guests from saving receipt images to their device.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             {/* Frame Options */}
             <div className="space-y-3">
               <div>

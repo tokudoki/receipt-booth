@@ -58,6 +58,12 @@ export type Settings = {
    * Empty string means no PIN is set and Settings opens freely.
    */
   settingsPin: string;
+  /**
+   * When false, the Save button is hidden on the Ready to Print screen
+   * so guests cannot save receipt images to their device.
+   * Defaults to true.
+   */
+  showSaveButton: boolean;
 };
 
 export const defaultSettings: Settings = {
@@ -76,6 +82,7 @@ export const defaultSettings: Settings = {
   printBrightness: 1.4,
   enabledFrameCounts: [1, 2, 3, 4],
   settingsPin: '',
+  showSaveButton: true,
 };
 
 /**
