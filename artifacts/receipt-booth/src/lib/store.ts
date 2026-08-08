@@ -64,6 +64,11 @@ export type Settings = {
    * Defaults to true.
    */
   showSaveButton: boolean;
+  /**
+   * When true (default), a QR code is shown on the Ready to Print screen
+   * that guests can scan to download the receipt image to their phone.
+   */
+  showQrCode: boolean;
 };
 
 export const defaultSettings: Settings = {
@@ -83,6 +88,7 @@ export const defaultSettings: Settings = {
   enabledFrameCounts: [1, 2, 3, 4],
   settingsPin: '',
   showSaveButton: true,
+  showQrCode: true,
 };
 
 /**

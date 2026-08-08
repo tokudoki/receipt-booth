@@ -545,6 +545,24 @@ export default function Settings() {
               </label>
             </div>
 
+            {/* Show QR Code */}
+            <div className="space-y-3">
+              <label
+                className="flex items-start gap-4 cursor-pointer select-none"
+                onClick={() => saveSettings({ showQrCode: !(settings.showQrCode !== false) })}
+              >
+                <div className={`mt-0.5 w-10 h-6 shrink-0 rounded-full border-2 transition-colors relative ${settings.showQrCode !== false ? 'bg-foreground border-foreground' : 'bg-card border-border'}`}>
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-background transition-transform ${settings.showQrCode !== false ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </div>
+                <div>
+                  <p className="font-bold uppercase tracking-wider leading-tight">Show QR Code</p>
+                  <p className="text-sm text-muted-foreground font-thermal mt-1">
+                    Show a scannable QR code on the print screen so guests can save the receipt to their phone without the Save button.
+                  </p>
+                </div>
+              </label>
+            </div>
+
             {/* Frame Options */}
             <div className="space-y-3">
               <div>

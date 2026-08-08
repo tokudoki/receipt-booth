@@ -4,8 +4,9 @@ import { useCapturedPhotos, useSettings, useLastReceipt, useFrameSelection } fro
 import { floydSteinbergDither } from '@/lib/dither';
 import { connectPrinter, printReceipt, isPrinterConnected, printReceiptWifi } from '@/lib/printer';
 import { renderReceiptToCanvas } from '@/lib/render-receipt';
-import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Wifi, Loader2 } from 'lucide-react';
+import { Printer, RefreshCcw, Download, CheckCircle, Bluetooth, Wifi, Loader2, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Preview() {
   const [_, setLocation] = useLocation();
@@ -16,6 +17,7 @@ export default function Preview() {
   const { toast } = useToast();
 
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [receiptShareUrl, setReceiptShareUrl] = useState<string | null>(null);
   const [isComposing, setIsComposing] = useState(true);
 
   // Ref to the captured canvas (full-color, for printing)
@@ -48,6 +50,23 @@ export default function Preview() {
         const url = dithered.toDataURL('image/png');
         setReceiptUrl(url);
         saveLastReceipt(url);
+
+        // Upload to API server for QR scan-to-save (fire and forget — don't block the UI)
+        if (settings.showQrCode !== false) {
+          try {
+            const resp = await fetch('/api/receipts', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: url }),
+            });
+            if (resp.ok) {
+              const { id } = await resp.json() as { id: string };
+              setReceiptShareUrl(`${window.location.origin}/api/receipts/${id}`);
+            }
+          } catch {
+            // Non-fatal — QR code just won't show
+          }
+        }
       } catch (err) {
         console.error(err);
         toast({ title: 'Error composing receipt', variant: 'destructive' });
@@ -169,6 +188,31 @@ export default function Preview() {
             <RefreshCcw size={20} /> Retake
           </button>
         </div>
+
+        {/* QR Code — scan to save */}
+        {settings.showQrCode !== false && receiptShareUrl && (
+          <div className="border-2 border-border p-4 flex flex-col items-center gap-3 bg-background">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <QrCode size={14} /> Scan to save to your phone
+            </div>
+            <QRCodeSVG
+              value={receiptShareUrl}
+              size={160}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              level="M"
+            />
+            <p className="text-xs text-muted-foreground font-thermal text-center">
+              Opens in browser — long-press to save the image
+            </p>
+          </div>
+        )}
+
+        {settings.showQrCode !== false && !receiptShareUrl && !isComposing && (
+          <div className="border-2 border-dashed border-border p-4 flex items-center justify-center gap-2 text-muted-foreground text-xs font-thermal">
+            <Loader2 size={14} className="animate-spin" /> Generating QR code…
+          </div>
+        )}
 
         <div className="mt-auto pt-4 border-t border-border flex justify-center">
           <Link
