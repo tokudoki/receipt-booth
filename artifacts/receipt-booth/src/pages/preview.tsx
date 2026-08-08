@@ -113,7 +113,7 @@ export default function Preview() {
       </div>
 
       {/* Right — actions */}
-      <div className="w-full lg:w-[420px] shrink-0 p-6 flex flex-col justify-center gap-4 bg-card overflow-y-auto">
+      <div className="w-full lg:w-[420px] shrink-0 p-6 flex flex-col justify-start gap-4 bg-card overflow-y-auto">
 
         <div className="space-y-2 mb-4">
           <h2 className="text-4xl font-black uppercase">Ready to Print</h2>
@@ -168,7 +168,7 @@ export default function Preview() {
           </button>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border flex justify-center">
+        <div className="mt-auto pt-4 border-t border-border flex justify-center">
           <Link
             href="/"
             className="text-muted-foreground hover:text-foreground font-thermal font-bold underline underline-offset-4 decoration-2"
