@@ -1,4 +1,4 @@
-import { useLocation } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Settings, Delete } from 'lucide-react';
 import { useLastReceipt, useSettings } from '@/lib/store';
 import { useEffect, useState, useCallback } from 'react';
@@ -24,14 +24,14 @@ export default function Home() {
     }
   }, [settings.printerIp]);
 
-  const handleSettingsPress = () => {
+  const handleSettingsClick = (e: React.MouseEvent) => {
     if (settings.settingsPin) {
+      e.preventDefault();
       setPinEntry('');
       setPinError(false);
       setShowPinModal(true);
-    } else {
-      setLocation('/settings');
     }
+    // No PIN set — Link navigates normally, no action needed here.
   };
 
   const triggerShake = useCallback(() => {
@@ -68,14 +68,15 @@ export default function Home() {
 
   return (
     <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      <button
-        onClick={handleSettingsPress}
+      <Link
+        href="/settings"
+        onClick={handleSettingsClick}
         className="absolute top-6 right-6 p-3 rounded-full hover-elevate transition-transform active:scale-95 text-foreground z-10"
         data-testid="link-settings"
         aria-label="Settings"
       >
         <Settings size={32} strokeWidth={2.5} />
-      </button>
+      </Link>
 
       {showBluetoothWarning && (
         <div className="absolute top-6 left-6 max-w-xs bg-destructive text-destructive-foreground p-4 text-sm font-mono uppercase font-bold z-10 shadow-lg">
@@ -93,12 +94,12 @@ export default function Home() {
           </p>
         </div>
 
-        <a href="/frames" onClick={(e) => { e.preventDefault(); setLocation('/frames'); }} className="group relative" data-testid="link-start">
+        <Link href="/frames" className="group relative" data-testid="link-start">
           <div className="absolute inset-0 bg-foreground translate-x-3 translate-y-3 transition-transform group-hover:translate-x-4 group-hover:translate-y-4 group-active:translate-x-1 group-active:translate-y-1" />
           <button className="relative bg-background border-4 border-foreground text-foreground px-16 py-8 text-5xl md:text-7xl font-black uppercase tracking-widest transition-transform group-active:translate-x-2 group-active:translate-y-2">
             Start
           </button>
-        </a>
+        </Link>
       </div>
 
       {lastReceipt && (
