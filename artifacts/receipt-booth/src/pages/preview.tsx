@@ -95,7 +95,7 @@ export default function Preview() {
     <div className="h-[100dvh] w-full flex flex-col lg:flex-row overflow-hidden bg-background text-foreground">
 
       {/* Left — dithered preview */}
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-border bg-[#E8E6E1] relative overflow-hidden">
+      <div className="flex-1 min-h-[45vh] lg:min-h-0 flex flex-col items-center justify-center p-4 lg:p-8 border-b lg:border-b-0 lg:border-r border-border bg-[#E8E6E1] relative overflow-hidden">
         {isComposing ? (
           <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground font-mono uppercase">
             <Loader2 className="animate-spin" size={48} />
@@ -106,7 +106,7 @@ export default function Preview() {
             <img
               src={receiptUrl}
               alt="Receipt Preview"
-              className="max-h-full max-w-[320px] w-auto object-contain mix-blend-multiply bg-white p-2 pb-6 shadow-xl border-b-4 border-r-2 border-border/20 transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out"
+              className="max-h-full max-w-[min(320px,85vw)] w-auto object-contain mix-blend-multiply bg-white p-2 pb-6 shadow-xl border-b-4 border-r-2 border-border/20 transform rotate-[-2deg] transition-transform hover:rotate-0 duration-500 ease-out"
             />
           </div>
         ) : null}
