@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { Link } from 'wouter';
-import { useSettings } from '@/lib/store';
+import { useSettings, type FrameCount } from '@/lib/store';
 import { connectPrinter, isPrinterConnected, disconnectPrinter } from '@/lib/printer';
-import { ArrowLeft, Bluetooth, Wifi, Image as ImageIcon, CheckCircle, Trash2, Printer, Search, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bluetooth, Wifi, Image as ImageIcon, CheckCircle, Trash2, Printer, Search, Loader2, LayoutGrid } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Settings() {
@@ -18,6 +18,9 @@ export default function Settings() {
   const [bridgeUrl, setBridgeUrl] = useState(settings.bridgeUrl ?? '');
   const [bridgeSecret, setBridgeSecret] = useState(settings.bridgeSecret ?? '');
   const [printBrightness, setPrintBrightness] = useState(settings.printBrightness ?? 1.4);
+  const [enabledFrameCounts, setEnabledFrameCounts] = useState<FrameCount[]>(
+    settings.enabledFrameCounts?.length > 0 ? settings.enabledFrameCounts : [1, 2, 3, 4]
+  );
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [printerConnected, setPrinterConnected] = useState(isPrinterConnected());
@@ -469,6 +472,72 @@ export default function Settings() {
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* Kiosk Options Section */}
+        <section className="space-y-6">
+          <div className="border-b-4 border-foreground pb-2">
+            <h2 className="text-3xl font-black uppercase flex items-center gap-3">
+              <LayoutGrid size={32} />
+              Kiosk Options
+            </h2>
+          </div>
+
+          <div className="space-y-8">
+            {/* Frame Options */}
+            <div className="space-y-3">
+              <div>
+                <label className="font-bold uppercase tracking-wider block">Frame Options</label>
+                <p className="text-sm text-muted-foreground font-thermal mt-1">
+                  Choose which layouts guests can pick. Uncheck all but one to skip the selection screen entirely.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  { count: 1 as FrameCount, label: '1 Photo',  sub: 'Full portrait'  },
+                  { count: 2 as FrameCount, label: '2 Photos', sub: 'Double strip'   },
+                  { count: 3 as FrameCount, label: '3 Photos', sub: 'Triple strip'   },
+                  { count: 4 as FrameCount, label: '4 Photos', sub: '2 × 2 grid'     },
+                ]).map(({ count, label, sub }) => {
+                  const isChecked = enabledFrameCounts.includes(count);
+                  return (
+                    <label
+                      key={count}
+                      className={`flex items-center gap-3 p-4 border-2 cursor-pointer transition-colors select-none ${
+                        isChecked ? 'border-foreground bg-foreground/5' : 'border-border bg-card hover:border-foreground/40'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          const next = isChecked
+                            ? enabledFrameCounts.filter(c => c !== count)
+                            : [...enabledFrameCounts, count].sort((a, b) => a - b) as FrameCount[];
+                          if (next.length === 0) {
+                            toast({ title: 'At least one frame option must stay enabled', variant: 'destructive' });
+                            return;
+                          }
+                          setEnabledFrameCounts(next);
+                          saveSettings({ enabledFrameCounts: next });
+                        }}
+                        className="w-5 h-5 accent-foreground shrink-0"
+                      />
+                      <div>
+                        <p className="font-bold uppercase text-sm tracking-wide leading-tight">{label}</p>
+                        <p className="font-thermal text-xs text-muted-foreground">{sub}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              {enabledFrameCounts.length === 1 && (
+                <p className="text-sm font-thermal text-muted-foreground border border-border bg-card p-3">
+                  Only one option is enabled — guests will skip the frame selection screen and go straight to capture.
+                </p>
+              )}
+            </div>
           </div>
         </section>
 

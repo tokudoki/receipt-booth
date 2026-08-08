@@ -47,6 +47,12 @@ export type Settings = {
    * for thermal ink bloom that darkens prints). Range: 0.5–2.0.
    */
   printBrightness: number;
+  /**
+   * Which frame-count options are shown on the frame selection screen.
+   * Defaults to all four. When exactly one value is present the frame
+   * selection screen is skipped and that count is used automatically.
+   */
+  enabledFrameCounts: FrameCount[];
 };
 
 export const defaultSettings: Settings = {
@@ -63,6 +69,7 @@ export const defaultSettings: Settings = {
   bridgeUrl: '',
   bridgeSecret: '',
   printBrightness: 1.4,
+  enabledFrameCounts: [1, 2, 3, 4],
 };
 
 /**

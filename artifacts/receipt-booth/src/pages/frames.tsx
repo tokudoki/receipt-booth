@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useFrameSelection, useSettings, type FrameCount } from '@/lib/store';
 import { ScaledReceiptTemplate } from '@/components/receipt-template';
 
-const FRAME_OPTIONS: { count: FrameCount; label: string; sub: string }[] = [
+const ALL_FRAME_OPTIONS: { count: FrameCount; label: string; sub: string }[] = [
   { count: 1, label: '1 FRAME',  sub: 'Full portrait'  },
   { count: 2, label: '2 FRAMES', sub: 'Double strip'   },
   { count: 3, label: '3 FRAMES', sub: 'Triple strip'   },
@@ -20,7 +20,25 @@ export default function Frames() {
   const [_, setLocation] = useLocation();
   const { frameCount, saveFrameCount } = useFrameSelection();
   const { settings } = useSettings();
-  const [selected, setSelected] = useState<FrameCount>(frameCount);
+
+  const enabledCounts: FrameCount[] = (settings.enabledFrameCounts?.length ?? 0) > 0
+    ? settings.enabledFrameCounts
+    : [1, 2, 3, 4];
+
+  const frameOptions = ALL_FRAME_OPTIONS.filter(o => enabledCounts.includes(o.count));
+
+  // If only one option is enabled, skip this screen and go straight to capture.
+  useEffect(() => {
+    if (frameOptions.length === 1) {
+      saveFrameCount(frameOptions[0].count);
+      setLocation('/capture');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [selected, setSelected] = useState<FrameCount>(() => {
+    // Ensure the stored frameCount is actually an enabled option; fall back to first enabled.
+    return enabledCounts.includes(frameCount) ? frameCount : enabledCounts[0];
+  });
 
   // Measure the cards container so ScaledReceiptTemplate can cap its height
   const gridRef = useRef<HTMLDivElement>(null);
@@ -67,7 +85,7 @@ export default function Frames() {
       {/* Cards — 2×2 grid; height-constrained so both rows fit without scrolling */}
       <div className="flex-1 min-h-0 px-4 md:px-8 py-4 overflow-hidden">
         <div ref={gridRef} className="grid grid-cols-2 gap-4 h-full max-w-5xl mx-auto items-start">
-          {FRAME_OPTIONS.map(({ count, label, sub }) => {
+          {frameOptions.map(({ count, label, sub }) => {
             const isSelected = selected === count;
             return (
               <button
